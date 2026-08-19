@@ -1,0 +1,13 @@
+New and changed
+
+- First TestFlight of OpenPocketCine. Pair over Bluetooth, join the camera's own Wi-Fi, and watch a live view with waveform, Traffic Lights, and other assists.
+
+Fixes
+
+- Nothing to call out yet — this is the first TestFlight build. If pairing, live view, or record misbehaves, that is the report we need.
+
+What to test
+
+- Pair an Osmo Pocket 4 or 4 Pro, join its Wi-Fi, and confirm live view fills the monitor.
+- Start and stop a take from the phone, then confirm it on the camera body.
+- Open the assist rail in portrait and turn on zebras or the waveform.

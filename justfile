@@ -16,7 +16,7 @@ setup:
 # Run every repository quality check that this tree currently supports.
 # `swift-lint` is available as `just lint` after `just format`; the existing tree is not
 # yet fully swift-format clean, so it is not a merge gate.
-check: hygiene site-check typos lint-md check-links check-editorconfig lint-actions secrets swift-test
+check: hygiene site-check testflight-notes typos lint-md check-links check-editorconfig lint-actions secrets swift-test
 
 # Reject tracked proprietary, secret-bearing, generated, or machine-specific files.
 hygiene:
@@ -73,6 +73,16 @@ swift-test:
 
 # Run all Swift-only checks.
 swift-check: swift-lint swift-test
+
+# Validate TestFlight "What to Test" copy and print it.
+testflight-notes:
+    ./scripts/ios-release-notes-check.sh
+    ./scripts/ios-release-notes-test.sh
+    ./scripts/ios-release-notes.sh
+
+# Print the committed iOS marketing version and local build number.
+ios-version:
+    @sed -n 's/^MARKETING_VERSION = /Version: /p; s/^CURRENT_PROJECT_VERSION = /Build: /p' ios/Config/Version.xcconfig
 
 # Generate the Xcode project from ios/project.yml.
 ios-generate:

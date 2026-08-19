@@ -14,7 +14,7 @@ Issues are for bugs only.
 ## Next
 
 - Camera control writes (record, ISO, white balance, tap-to-focus) proven on hardware
-- Public TestFlight once signing and tester notes exist
+- Public TestFlight via Xcode Cloud (first archive + App Review)
 - Landing-page screenshots (reviewed, faces blurred)
 - Play internal testing when Android is operator-ready
 

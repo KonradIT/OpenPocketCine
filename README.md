@@ -167,6 +167,14 @@ cd ios && xcodegen generate && open OpenPocketCine.xcodeproj
 
 The Simulator has no Bluetooth or camera Wi-Fi. Pairing and live view need a physical iPhone.
 
+TestFlight archives come from Xcode Cloud. One-time App Store Connect setup:
+
+```bash
+./scripts/setup-xcode-cloud.sh
+```
+
+See [`docs/testflight-ci.md`](docs/testflight-ci.md).
+
 ## Contributing
 
 Contributions are welcome!
