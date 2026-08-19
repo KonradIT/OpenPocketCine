@@ -7,7 +7,7 @@
   <meta name="description" content="OpenPocketCine is a free, open-source field-monitor app for DJI Osmo Pocket cameras. Live view, scopes, and assists over the camera's own Wi-Fi.">
   <meta name="theme-color" content="#0A0908">
   <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
   <link rel="canonical" href="https://openpocketcine.app/">
   <meta property="og:type" content="website">
   <meta property="og:title" content="OpenPocketCine: Open-source field monitor for DJI Osmo Pocket">
@@ -27,6 +27,7 @@
   <a class="skip-link" href="#top">Skip to content</a>
   <div class="bg-glow" aria-hidden="true"></div>
   <div class="grain" aria-hidden="true"></div>
+  <div class="spotlight" aria-hidden="true"></div>
 
   <header class="nav" id="nav">
     <div class="container nav__inner">
@@ -35,14 +36,15 @@
         <span>OpenPocketCine</span>
       </a>
       <nav class="nav__links" aria-label="Primary">
-        <a href="#shots">Shots</a>
+        <a href="#scopes">Scopes</a>
+        <a href="#assists">Assists</a>
+        <a href="#commander">Control</a>
         <a href="#open-source">Open Source</a>
-        <a href="#credits">Credits</a>
         <a href="/support/">Support</a>
       </nav>
       <div class="nav__cta">
         <a class="nav__github" href="https://github.com/erik-sutton95/OpenPocketCine" target="_blank" rel="noopener" aria-label="OpenPocketCine on GitHub">★ GitHub</a>
-        <a class="btn btn--primary" href="https://github.com/erik-sutton95/OpenPocketCine"><span class="btn__rec" aria-hidden="true"></span>Get the source</a>
+        <a class="btn btn--primary btn--magnetic" href="https://github.com/erik-sutton95/OpenPocketCine"><span class="btn__rec" aria-hidden="true"></span>Get the source</a>
       </div>
     </div>
   </header>
@@ -57,26 +59,99 @@
           with professional scopes and assists. Free, Apache-2.0, no vendor SDK.
         </p>
         <div class="hero__cta" data-intro>
-          <a class="btn btn--primary" href="https://github.com/erik-sutton95/OpenPocketCine">Get the source</a>
-          <a class="btn btn--ghost" href="/support/">How to connect</a>
+          <a class="btn btn--primary btn--magnetic" href="https://github.com/erik-sutton95/OpenPocketCine"><span class="btn__rec" aria-hidden="true"></span>Get the source</a>
+          <a class="btn btn--ghost btn--magnetic" href="/support/">How to connect<span class="btn__arrow" aria-hidden="true">→</span></a>
+        </div>
+
+        <div class="hero__mock" data-intro>
+          <img src="assets/screens/hero-monitor.webp"
+            alt="OpenPocketCine live monitor recording on a landscape iPhone"
+            width="1600" height="638" decoding="async">
         </div>
       </div>
     </section>
 
-    <section class="section" id="shots">
-      <div class="container">
-        <div class="shot-grid">
-          <img src="assets/screens/hero-monitor.webp" alt="OpenPocketCine live monitor recording" width="1600" height="638" decoding="async">
-          <img src="assets/screens/camera-controls.webp" alt="OpenPocketCine camera controls and zoom" width="1600" height="1057" loading="lazy" decoding="async">
-          <img src="assets/screens/scopes.webp" alt="OpenPocketCine waveform and Traffic Lights" width="1600" height="841" loading="lazy" decoding="async">
-          <img src="assets/screens/portrait-assists.webp" alt="OpenPocketCine portrait assist rail" width="837" height="1600" loading="lazy" decoding="async">
+    <div class="ticker" aria-hidden="true">
+      <div class="ticker__track">
+        <span class="ticker__group">
+          <span>Osmo Pocket 4</span><i></i><span>4 Pro</span><i></i><span>Osmo Nano</span><i></i>
+          <span>HEVC</span><i></i><span>AVC</span><i></i><span>D-Log2</span><i></i>
+          <span>Waveform</span><i></i><span>RGB Parade</span><i></i><span>Histogram</span><i></i>
+          <span>Vectorscope</span><i></i><span>False Color</span><i></i><span>Focus Peaking</span><i></i>
+          <span>Zebras</span><i></i><span>Traffic Lights</span><i></i><span>Camera to Cloud</span><i></i>
+        </span>
+        <span class="ticker__group">
+          <span>Osmo Pocket 4</span><i></i><span>4 Pro</span><i></i><span>Osmo Nano</span><i></i>
+          <span>HEVC</span><i></i><span>AVC</span><i></i><span>D-Log2</span><i></i>
+          <span>Waveform</span><i></i><span>RGB Parade</span><i></i><span>Histogram</span><i></i>
+          <span>Vectorscope</span><i></i><span>False Color</span><i></i><span>Focus Peaking</span><i></i>
+          <span>Zebras</span><i></i><span>Traffic Lights</span><i></i><span>Camera to Cloud</span><i></i>
+        </span>
+      </div>
+    </div>
+
+    <section class="statement" aria-label="OpenPocketCine in one sentence">
+      <p class="statement__text" id="statement">
+        <span class="w">Every</span> <span class="w">scope.</span>
+        <span class="w">Every</span> <span class="w">assist.</span>
+        <span class="w">Camera</span> <span class="w">control.</span>
+        <span class="w w--gold">Free,</span> <span class="w w--gold">and</span>
+        <span class="w w--gold">open</span> <span class="w w--gold">source.</span>
+      </p>
+    </section>
+
+    <section class="section phone-showcase" id="scopes">
+      <div class="container phone-showcase__inner">
+        <div class="phone-showcase__copy">
+          <span class="section-label"><span class="rec-dot"></span> Scopes</span>
+          <h2>Read the image like a colorist.</h2>
+          <p class="lead">Waveform, RGB parade, histogram, and vectorscope run live
+            beside the image you are judging, with Traffic Lights on the feed.</p>
         </div>
+        <figure class="phone-showcase__visual phone-showcase__visual--wide">
+          <img src="assets/screens/scopes.webp"
+            alt="OpenPocketCine waveform and Traffic Lights over a live view"
+            width="1600" height="841" loading="lazy" decoding="async">
+        </figure>
       </div>
     </section>
 
-    <section id="open-source">
-      <div class="container">
-        <span class="section-label">Free. Open source. Yours</span>
+    <section class="section phone-showcase" id="assists">
+      <div class="container phone-showcase__inner">
+        <div class="phone-showcase__copy">
+          <span class="section-label"><span class="rec-dot"></span> View Assist</span>
+          <h2>Catch it before the take.</h2>
+          <p class="lead">False color, zebras, Traffic Lights, peaking, grids, and
+            crosshairs sit on a rail next to the image — including in portrait.</p>
+        </div>
+        <figure class="phone-showcase__visual">
+          <img src="assets/screens/portrait-assists.webp"
+            alt="OpenPocketCine portrait assist rail with zebras and framing tools"
+            width="837" height="1600" loading="lazy" decoding="async">
+        </figure>
+      </div>
+    </section>
+
+    <section class="section phone-showcase" id="commander">
+      <div class="container phone-showcase__inner">
+        <div class="phone-showcase__copy">
+          <span class="section-label"><span class="rec-dot"></span> Camera Control</span>
+          <h2>Keep the camera in the rig.</h2>
+          <p class="lead">Pair over Bluetooth, join the camera's Wi-Fi, then set ISO,
+            EV, zoom, gimbal, and record from the phone on your cage.</p>
+        </div>
+        <figure class="phone-showcase__visual phone-showcase__visual--wide">
+          <img src="assets/screens/camera-controls.webp"
+            alt="OpenPocketCine camera controls and zoom while recording"
+            width="1600" height="1057" loading="lazy" decoding="async">
+        </figure>
+      </div>
+    </section>
+
+    <section class="section section--spot spot" id="open-source">
+      <div class="spot__glow" aria-hidden="true"></div>
+      <div class="container spot-oss__inner">
+        <span class="section-label"><span class="rec-dot"></span> Identity Core</span>
         <h2>No subscriptions, no telemetry.</h2>
         <p class="lead">
           OpenPocketCine is Apache-2.0 licensed and built in public with the latest frontier
@@ -124,5 +199,13 @@
       </nav>
     </div>
   </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"
+    integrity="sha384-g4NTh/Iv5PPU4xPyhEWqPcwtNXOvdaDI8LLnyYfyNZOjKJeYQyjzQ9X5275eBjpt"
+    crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"
+    integrity="sha384-Z3REaz79l2IaAZqJsSABtTbhjgOUYyV3p90XNnAPCSHg3EMTz1fouunq9WZRtj3d"
+    crossorigin="anonymous"></script>
+  <script src="assets/app.js" defer></script>
 </body>
 </html>
