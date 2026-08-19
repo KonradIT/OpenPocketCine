@@ -4,12 +4,6 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 <p align="center">
-  <a href="https://openpocketcine.app/">
-    <img alt="OpenPocketCine live monitor recording with ISO, shutter, white balance, and assist chips" src="site/assets/screens/hero-monitor.webp" width="820">
-  </a>
-</p>
-
-<p align="center">
   <strong>The open field monitor for DJI Osmo Pocket.</strong><br>
   Pro monitoring scopes, playback, camera control, and Camera-to-Cloud export with LUT
   baking. Free and open source.
@@ -46,29 +40,24 @@ can be incomplete.
 
 ## See it in action
 
-### Live monitoring and camera control
-
-<p align="center">
-  <a href="https://openpocketcine.app/#commander">
-    <img alt="OpenPocketCine camera controls with ISO, shutter, zoom, gimbal, and record" src="site/assets/screens/camera-controls.webp" width="820">
-  </a>
-</p>
-
-### Scopes and on-set assists
-
-<p align="center">
-  <a href="https://openpocketcine.app/#scopes">
-    <img alt="OpenPocketCine waveform and Traffic Lights over a live Pocket feed" src="site/assets/screens/scopes.webp" width="820">
-  </a>
-</p>
-
-### Vertical shooting
-
-<p align="center">
-  <a href="https://openpocketcine.app/#portrait">
-    <img alt="OpenPocketCine portrait monitor with the full assist rail" src="site/assets/screens/portrait-assists.webp" width="820">
-  </a>
-</p>
+<table>
+  <tr>
+    <td align="center">
+      <img alt="Live monitor recording" src="site/assets/screens/hero-monitor.webp" />
+    </td>
+    <td align="center">
+      <img alt="Camera controls and zoom" src="site/assets/screens/camera-controls.webp" />
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <img alt="Waveform and Traffic Lights" src="site/assets/screens/scopes.webp" />
+    </td>
+    <td align="center">
+      <img alt="Portrait assist rail" src="site/assets/screens/portrait-assists.webp" />
+    </td>
+  </tr>
+</table>
 
 ## Available today
 
@@ -124,17 +113,26 @@ OpenPocketCine went through an extended private R&D phase before publication; th
 repository starts from a clean slate with a squashed initial commit rather than carrying the
 experimental history along.
 
-## No vendor SDK
+## Credits
 
-This project is not affiliated with DJI. No DJI SDK or proprietary documentation is included in,
-distributed with, or required by this project.
+### Osmosis
 
 I learned the BLE pairing and camera Wi-Fi connection path with the help of
 [Osmosis](https://github.com/KonradIT/osmosis) by Konrad Iturbe — a generous open Android client
 for Osmo cameras. I'm grateful. OpenPocketCine is its own implementation; Osmosis was inspiration
-for that connection story, not a source I copied. If you go back to Osmosis, check its license.
+for that connection story, not a source I copied.
+
+Please go look at [Osmosis](https://github.com/KonradIT/osmosis) too. If you care about talking to
+Osmo cameras, Konrad's work is worth your time.
+
+### OpenZCine
 
 The field-monitor architecture follows [OpenZCine](https://github.com/erik-sutton95/OpenZCine).
+
+## No vendor SDK
+
+This project is not affiliated with DJI. No DJI SDK or proprietary documentation is included in,
+distributed with, or required by this project.
 
 ## Development
 

@@ -477,18 +477,20 @@ h3 { font-size: clamp(20px, 2.4vw, 26px); line-height: 1.2; letter-spacing: -0.0
 .hero__inner .lead { margin: 0 auto; }
 .hero__cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; justify-content: center; }
 
-/* The floating monitor render. JS tilts it gently toward the pointer. */
-.hero__mock {
-  margin-top: clamp(28px, 6vh, 64px);
-  width: min(880px, 92%);
-  perspective: 1100px;
+.shot-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin: clamp(36px, 6vh, 64px) auto 0;
+  width: min(960px, 100%);
 }
-.hero__mock img {
-  width: 100%; height: auto;
-  filter: drop-shadow(0 40px 80px rgba(0,0,0,0.55));
-  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
-  transition: transform .18s ease-out;
-  will-change: transform;
+@media (min-width: 720px) {
+  .shot-grid { grid-template-columns: 1fr 1fr; }
+}
+.shot-grid img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 .hero__disclaimer {
   position: absolute;
@@ -691,7 +693,6 @@ h3 { font-size: clamp(20px, 2.4vw, 26px); line-height: 1.2; letter-spacing: -0.0
 }
 .feat-row__visual img {
   width: 100%; max-width: 640px; height: auto;
-  filter: drop-shadow(0 30px 60px rgba(0,0,0,0.5));
 }
 .frameio-lockup {
   display: inline-flex;

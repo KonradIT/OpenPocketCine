@@ -35,10 +35,9 @@
         <span>OpenPocketCine</span>
       </a>
       <nav class="nav__links" aria-label="Primary">
-        <a href="#scopes">Scopes</a>
-        <a href="#commander">Control</a>
-        <a href="#portrait">Portrait</a>
+        <a href="#shots">Shots</a>
         <a href="#open-source">Open Source</a>
+        <a href="#credits">Credits</a>
         <a href="/support/">Support</a>
       </nav>
       <div class="nav__cta">
@@ -61,59 +60,16 @@
           <a class="btn btn--primary" href="https://github.com/erik-sutton95/OpenPocketCine">Get the source</a>
           <a class="btn btn--ghost" href="/support/">How to connect</a>
         </div>
-
-        <div class="hero__mock" data-intro>
-          <img src="assets/screens/hero-monitor.webp"
-            alt="OpenPocketCine recording: red telltale, ISO 800, shutter 1/80, D-Log2, and assist chips"
-            width="1600" height="1067" decoding="async">
-        </div>
       </div>
     </section>
 
-    <section class="statement" id="monitor">
+    <section class="section" id="shots">
       <div class="container">
-        <p class="statement__text">
-          Built for <span class="w--gold">Osmo Pocket 4 / 4 Pro</span> and Nano.
-          iOS first; Android lives in the same repository.
-        </p>
-      </div>
-    </section>
-
-    <section class="section feat-section" id="scopes">
-      <div class="container grid grid--2 feat-row">
-        <div class="feat-row__copy">
-          <span class="section-label"><span class="rec-dot"></span> Scopes</span>
-          <h2>Read the image like a colorist.</h2>
-          <p class="lead">Waveform and RED-inspired Traffic Lights sit on the live Pocket feed, next to the picture you are judging.</p>
-        </div>
-        <div class="feat-row__visual">
-          <img src="assets/screens/scopes.webp" alt="OpenPocketCine waveform and Traffic Lights over a live feed" width="1600" height="1120" loading="lazy" decoding="async">
-        </div>
-      </div>
-    </section>
-
-    <section class="section feat-section" id="commander">
-      <div class="container grid grid--2 feat-row feat-row--reverse">
-        <div class="feat-row__copy">
-          <span class="section-label"><span class="rec-dot"></span> Control</span>
-          <h2>Keep the camera in the rig.</h2>
-          <p class="lead">ISO, shutter, zoom, gimbal, and record from the phone — including Auto D-Log switching so zoom still works.</p>
-        </div>
-        <div class="feat-row__visual">
-          <img src="assets/screens/camera-controls.webp" alt="OpenPocketCine camera controls while recording at 3x zoom" width="1600" height="1067" loading="lazy" decoding="async">
-        </div>
-      </div>
-    </section>
-
-    <section class="section feat-section" id="portrait">
-      <div class="container grid grid--2 feat-row">
-        <div class="feat-row__copy">
-          <span class="section-label"><span class="rec-dot"></span> Portrait</span>
-          <h2>Vertical shooting, full assist rail.</h2>
-          <p class="lead">LUT, peaking, false color, zebra, waveform, parade, histogram, vectorscope, Traffic Lights, guides, grid, and crosshair — all in the portrait layout.</p>
-        </div>
-        <div class="feat-row__visual">
-          <img src="assets/screens/portrait-assists.webp" alt="OpenPocketCine portrait monitor with the full assist rail" width="1600" height="1600" loading="lazy" decoding="async">
+        <div class="shot-grid">
+          <img src="assets/screens/hero-monitor.webp" alt="OpenPocketCine live monitor recording" width="1600" height="1067" decoding="async">
+          <img src="assets/screens/camera-controls.webp" alt="OpenPocketCine camera controls and zoom" width="1600" height="1067" loading="lazy" decoding="async">
+          <img src="assets/screens/scopes.webp" alt="OpenPocketCine waveform and Traffic Lights" width="1600" height="1120" loading="lazy" decoding="async">
+          <img src="assets/screens/portrait-assists.webp" alt="OpenPocketCine portrait assist rail" width="1600" height="1600" loading="lazy" decoding="async">
         </div>
       </div>
     </section>
@@ -127,12 +83,30 @@
           improve the monitor, and keep the tool you rely on.
         </p>
         <p>
-          This project is not affiliated with DJI. I learned BLE pairing and camera Wi-Fi
-          connection with the help of
-          <a href="https://github.com/KonradIT/osmosis">Osmosis</a> by Konrad Iturbe, and I'm
-          grateful. The field-monitor architecture follows
+          This project is not affiliated with DJI. Verify record start/stop on the camera body
+          until you trust the link.
+        </p>
+      </div>
+    </section>
+
+    <section class="section" id="credits">
+      <div class="container">
+        <span class="section-label">Credits</span>
+        <h2>Osmosis</h2>
+        <p class="lead">
+          I learned the BLE pairing and camera Wi-Fi connection path with the help of
+          <a href="https://github.com/KonradIT/osmosis">Osmosis</a> by Konrad Iturbe — a generous
+          open Android client for Osmo cameras. I'm grateful. OpenPocketCine is its own
+          implementation; Osmosis was inspiration for that connection story, not a source I copied.
+        </p>
+        <p>
+          Please go look at <a href="https://github.com/KonradIT/osmosis">Osmosis</a> too. If you
+          care about talking to Osmo cameras, Konrad's work is worth your time.
+        </p>
+        <h2>OpenZCine</h2>
+        <p>
+          The field-monitor architecture follows
           <a href="https://github.com/erik-sutton95/OpenZCine">OpenZCine</a>.
-          Verify record start/stop on the camera body until you trust the link.
         </p>
       </div>
     </section>
