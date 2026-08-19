@@ -1,0 +1,234 @@
+package com.opencapture.openpocketcine.pairing
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.opencapture.openpocketcine.AppModel
+import com.opencapture.openpocketcine.AppPanel
+import com.opencapture.openpocketcine.session.FoundCamera
+
+@Composable
+fun SavedCamerasExperience(model: AppModel) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val twoColumn = maxWidth >= 640.dp
+        val introWidth = maxOf(288.dp, maxWidth * 0.36f)
+        if (twoColumn) {
+            Row(Modifier.fillMaxSize(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                IntroCard(model, hugsContent = false, Modifier.width(introWidth).fillMaxHeight())
+                CameraListCard(model, Modifier.weight(1f).fillMaxHeight())
+            }
+        } else {
+            Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                IntroCard(model, hugsContent = true, Modifier.fillMaxWidth())
+                CameraListCard(model, Modifier.weight(1f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun IntroCard(model: AppModel, hugsContent: Boolean, modifier: Modifier) {
+    Column(modifier.startupCard().padding(20.dp)) {
+        Text("Your cameras.", color = StartupColors.ink, fontSize = 30.sp, fontWeight = FontWeight.Bold, maxLines = 1)
+        Text(
+            "Tap a saved camera to reconnect. Pocket uses one connect path — BLE, then the camera's own Wi-Fi.",
+            color = StartupColors.muted,
+            fontSize = 13.sp,
+            modifier = Modifier.padding(top = 10.dp),
+        )
+        if (hugsContent) Spacer(Modifier.height(16.dp)) else Spacer(Modifier.weight(1f))
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            StartupFilledButton(
+                "Pair new camera",
+                enabled = !model.isBusy,
+                onClick = model::pairNewCamera,
+                modifier = Modifier.fillMaxWidth(),
+                large = true,
+            )
+            StartupQuietButton(
+                "Media library",
+                onClick = { model.homePanel = AppPanel.MEDIA },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            StartupQuietButton(
+                "Settings",
+                onClick = { model.homePanel = AppPanel.SETTINGS },
+                modifier = Modifier.fillMaxWidth(),
+            )
+        }
+    }
+}
+
+@Composable
+private fun CameraListCard(model: AppModel, modifier: Modifier) {
+    val found by model.session.found.collectAsState()
+    val scroll = rememberScrollState()
+    Column(modifier.startupCard().padding(22.dp)) {
+        Text("CAMERA LIST", color = StartupColors.muted, fontSize = 11.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.4.sp)
+        Text("Tap a camera to connect", color = StartupColors.ink, fontSize = 25.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 6.dp))
+        Column(
+            Modifier.weight(1f).padding(top = 16.dp).fadeOverflowBottom(scroll).verticalScroll(scroll),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+        ) {
+            model.savedCameras.forEach { camera ->
+                SavedCameraRow(
+                    camera = camera,
+                    nearby = found.firstOrNull { it.id == camera.id },
+                    isBusy = model.isBusy,
+                    onConnect = { model.reconnect(camera) },
+                    onRename = { model.rename(camera, it) },
+                    onRemove = { model.forget(camera) },
+                )
+            }
+            if (model.savedCameras.isEmpty()) {
+                Text(
+                    "No cameras saved yet — Pair new camera walks you through it.",
+                    color = StartupColors.muted,
+                    fontSize = 12.sp,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SavedCameraRow(
+    camera: SavedCamera,
+    nearby: FoundCamera?,
+    isBusy: Boolean,
+    onConnect: () -> Unit,
+    onRename: (String?) -> Unit,
+    onRemove: () -> Unit,
+) {
+    var menu by remember { mutableStateOf(false) }
+    var rename by remember { mutableStateOf(false) }
+    var remove by remember { mutableStateOf(false) }
+    var renameText by remember { mutableStateOf(camera.customName.orEmpty()) }
+    val online = nearby != null
+    Column(Modifier.fillMaxWidth().startupTile().padding(horizontal = 16.dp, vertical = 16.dp)) {
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(
+                camera.displayName,
+                color = StartupColors.ink,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Text(
+                if (online) "Online" else "Offline",
+                color = if (online) StartupColors.ready else StartupColors.muted,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.SemiBold,
+                modifier =
+                    Modifier.clip(CircleShape)
+                        .background((if (online) StartupColors.ready else StartupColors.muted).copy(alpha = 0.14f))
+                        .padding(horizontal = 10.dp, vertical = 5.dp),
+            )
+            StartupFilledButton(if (online) "Connect" else "Reconnect", enabled = !isBusy, onClick = onConnect)
+            Box {
+                Text(
+                    "···",
+                    color = StartupColors.muted,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable(enabled = !isBusy) { menu = true }.padding(8.dp),
+                )
+                DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+                    DropdownMenuItem(
+                        text = { Text("Rename") },
+                        onClick = {
+                            menu = false
+                            renameText = camera.customName.orEmpty()
+                            rename = true
+                        },
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Remove") },
+                        onClick = {
+                            menu = false
+                            remove = true
+                        },
+                    )
+                }
+            }
+        }
+        Text(
+            camera.modelName + (camera.lastSSID?.let { " · $it" } ?: ""),
+            color = StartupColors.muted,
+            fontSize = 13.sp,
+            maxLines = 1,
+        )
+    }
+    if (rename) {
+        AlertDialog(
+            onDismissRequest = { rename = false },
+            title = { Text("Rename camera") },
+            text = {
+                Column {
+                    Text("Give this camera a name you'll recognize.")
+                    OutlinedTextField(value = renameText, onValueChange = { renameText = it }, label = { Text("Name") })
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onRename(renameText)
+                        rename = false
+                    }
+                ) { Text("Save") }
+            },
+            dismissButton = { TextButton(onClick = { rename = false }) { Text("Cancel") } },
+        )
+    }
+    if (remove) {
+        AlertDialog(
+            onDismissRequest = { remove = false },
+            title = { Text("Remove camera?") },
+            text = { Text("This removes ${camera.displayName} from this phone. You can pair it again later.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onRemove()
+                        remove = false
+                    }
+                ) { Text("Remove") }
+            },
+            dismissButton = { TextButton(onClick = { remove = false }) { Text("Cancel") } },
+        )
+    }
+}

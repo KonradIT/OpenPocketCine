@@ -1,0 +1,347 @@
+import AVFoundation
+import CoreImage
+import Foundation
+import OpenPocketViewCore
+import os
+import UIKit
+
+/// LUT bake + live playback composition. OpenZCine `MediaLUT` / `PlaybackEffectsBox`,
+/// using Pocket's `LiveMonitorCompositor` instead of the Nikon compositor.
+enum MediaLUT {
+    private static let displayColorSpace =
+        CGColorSpace(name: CGColorSpace.sRGB) ?? CGColorSpaceCreateDeviceRGB()
+    static let renderContext = CIContext(options: [
+        .workingFormat: CIFormat.RGBAh,
+        .workingColorSpace: displayColorSpace,
+        .highQualityDownsample: true,
+    ])
+    /// Separate from `renderContext` so a bake cannot race the playback compositor
+    /// (CIContext is not safe for concurrent `finish` / `createCGImage`).
+    private static let exportContext = CIContext(options: [
+        .workingFormat: CIFormat.RGBAh,
+        .workingColorSpace: displayColorSpace,
+        .highQualityDownsample: true,
+    ])
+
+    /// Live view downscales the compositor to 1440 px. `AVVideoComposition` still
+    /// renders at the source raster — without this scale-back the picture sits in
+    /// the bottom-left and the rest of the buffer is green.
+    static func transformFitting(_ source: CGRect, to target: CGRect) -> CGAffineTransform {
+        guard source.width > 1, source.height > 1, target.width > 1, target.height > 1 else {
+            return .identity
+        }
+        let scaleX = target.width / source.width
+        let scaleY = target.height / source.height
+        let scale = CGAffineTransform(scaleX: scaleX, y: scaleY)
+        let scaledOrigin = CGPoint(x: source.minX, y: source.minY).applying(scale)
+        return scale.concatenating(
+            CGAffineTransform(
+                translationX: target.minX - scaledOrigin.x,
+                y: target.minY - scaledOrigin.y))
+    }
+
+    static func image(_ image: CIImage, fittedTo extent: CGRect) -> CIImage {
+        let source = image.extent
+        if abs(source.width - extent.width) < 0.5, abs(source.height - extent.height) < 0.5,
+            abs(source.minX - extent.minX) < 0.5, abs(source.minY - extent.minY) < 0.5
+        {
+            return image.cropped(to: extent)
+        }
+        return image.transformed(by: transformFitting(source, to: extent)).cropped(to: extent)
+    }
+
+    enum ExportError: LocalizedError {
+        case sessionSetupFailed
+        case failed(String)
+        case invalidFilename
+
+        var errorDescription: String? {
+            switch self {
+            case .sessionSetupFailed: "Couldn't create the export session for this clip."
+            case .failed(let reason): "Export failed: \(reason)"
+            case .invalidFilename: "Enter a valid filename."
+            }
+        }
+    }
+
+    struct ExportResult: Sendable {
+        let videoURL: URL
+        let metadataURL: URL?
+    }
+
+    static func videoComposition(for asset: AVAsset, cube: CubeLUT) -> AVVideoComposition {
+        let prepared = cube.colorCube
+        let dimension = prepared.size
+        let cubeData = prepared.rgbaComponents.withUnsafeBytes { Data($0) }
+        return AVVideoComposition(asset: asset) { request in
+            let source = request.sourceImage
+            let extent = source.extent
+            guard
+                let filter = CIFilter(
+                    name: "CIColorCube",
+                    parameters: [
+                        "inputCubeDimension": dimension,
+                        "inputCubeData": cubeData,
+                    ])
+            else {
+                request.finish(with: source, context: exportContext)
+                return
+            }
+            filter.setValue(source.clampedToExtent(), forKey: kCIInputImageKey)
+            let output = (filter.outputImage ?? source).cropped(to: extent)
+            request.finish(with: output, context: exportContext)
+        }
+    }
+
+    final class PlaybackEffectsBox: @unchecked Sendable {
+        struct ScopeSnapshot: Sendable {
+            let revision: UInt64
+            let bundle: ScopeAssistBundle
+        }
+
+        private let effects = OSAllocatedUnfairLock<LiveImageEffects>(
+            initialState: LiveImageEffects())
+        private let scopeState = OSAllocatedUnfairLock<ScopeAssistBundle>(
+            initialState: .empty)
+        private let active = OSAllocatedUnfairLock(initialState: false)
+        private var compositionGeneration: UInt64 = 0
+
+        func set(effects: LiveImageEffects) -> Bool {
+            self.effects.withLock { current in
+                guard current != effects else { return false }
+                current = effects
+                return true
+            }
+        }
+
+        func setScopesActive(_ on: Bool) {
+            active.withLock { $0 = on }
+            if !on {
+                scopeState.withLock { $0 = .empty }
+            }
+        }
+
+        func invalidateScopeComposition() {
+            compositionGeneration &+= 1
+            scopeState.withLock { $0 = .empty }
+        }
+
+        func readScopeSnapshot() -> ScopeSnapshot {
+            scopeState.withLock { ScopeSnapshot(revision: $0.revision, bundle: $0) }
+        }
+
+        func makeVideoComposition(for asset: AVAsset) -> AVVideoComposition {
+            let box = self
+            compositionGeneration &+= 1
+            let generation = compositionGeneration
+            return AVVideoComposition(asset: asset) { request in
+                let source = request.sourceImage
+                let extent = source.extent
+                if generation == box.compositionGeneration {
+                    box.sampleScopesIfNeeded(from: source)
+                }
+                let resolved = box.effects.withLock { $0 }
+                let output: CIImage
+                if resolved.needsGPUFeed {
+                    output = MediaLUT.image(
+                        LiveMonitorCompositor.apply(to: source, effects: resolved),
+                        fittedTo: extent)
+                } else {
+                    output = source.cropped(to: extent)
+                }
+                request.finish(with: output, context: renderContext)
+            }
+        }
+
+        private func sampleScopesIfNeeded(from source: CIImage) {
+            guard active.withLock({ $0 }) else { return }
+            let fx = effects.withLock { $0 }
+            guard fx.needsScopes else { return }
+            let scaled = source.transformed(
+                by: CGAffineTransform(
+                    scaleX: CGFloat(PocketScopeSampler.maxWidth) / max(source.extent.width, 1),
+                    y: CGFloat(PocketScopeSampler.maxWidth) / max(source.extent.width, 1)))
+            guard
+                let cg = renderContext.createCGImage(
+                    scaled, from: scaled.extent, format: .RGBA8,
+                    colorSpace: displayColorSpace)
+            else { return }
+            guard let data = cg.dataProvider?.data else { return }
+            var bytes = [UInt8](repeating: 0, count: CFDataGetLength(data))
+            CFDataGetBytes(data, CFRange(location: 0, length: bytes.count), &bytes)
+            let width = cg.width
+            let height = cg.height
+            let bpr = cg.bytesPerRow
+            let previous = scopeState.withLock { $0 }
+            let transfer = MonitorTransfer(fx.colorMode)
+            let look = ScopeMonitorLook.cube(from: fx)
+            let bundle = PocketScopeSampler.sample(
+                bytes: bytes, width: width, height: height, bytesPerRow: bpr,
+                transfer: transfer,
+                includePoints: fx.needsScopePoints,
+                includeVectorPoints: fx.vectorscope,
+                look: look,
+                trafficThreshold: fx.trafficThreshold,
+                previous: previous)
+            scopeState.withLock { $0 = bundle }
+        }
+    }
+
+    static func export(
+        sourceURL: URL,
+        outputFilename: String,
+        format: MediaExportFormat,
+        cube: CubeLUT?,
+        metadata: MediaClipDeliveryMetadata?,
+        progress: @escaping @Sendable (Double) -> Void
+    ) async throws -> ExportResult {
+        let outputURL = try makeExportURL(filename: outputFilename, format: format)
+        progress(0.02)
+        let sourceExt = sourceURL.pathExtension.lowercased()
+        let passthrough =
+            cube == nil
+            && (sourceExt == format.rawValue || (sourceExt == "m4v" && format == .mp4))
+        if passthrough {
+            if FileManager.default.fileExists(atPath: outputURL.path) {
+                try FileManager.default.removeItem(at: outputURL)
+            }
+            try FileManager.default.copyItem(at: sourceURL, to: outputURL)
+            progress(0.9)
+        } else {
+            try await transcode(
+                sourceURL: sourceURL, outputURL: outputURL, format: format, cube: cube,
+                progress: progress)
+        }
+        try await ensureFileReady(at: outputURL)
+        let metadataURL = try writeMetadataSidecar(metadata, nextTo: outputURL)
+        progress(1)
+        return ExportResult(videoURL: outputURL, metadataURL: metadataURL)
+    }
+
+    /// Maps `AVAssetExportSession.progress` (0…1) onto the overlay's export band (5%…90%).
+    static func mappedExportProgress(_ sessionProgress: Float) -> Double {
+        0.05 + Double(max(0, min(1, sessionProgress))) * 0.85
+    }
+
+    private static func transcode(
+        sourceURL: URL,
+        outputURL: URL,
+        format: MediaExportFormat,
+        cube: CubeLUT?,
+        progress: @escaping @Sendable (Double) -> Void
+    ) async throws {
+        // No LUT: remux when the container just changes (MP4 → MOV). Re-encode only
+        // if passthrough is refused, or when a cube has to be baked in.
+        let preferred =
+            cube == nil ? AVAssetExportPresetPassthrough : AVAssetExportPresetHighestQuality
+        do {
+            try await runExport(
+                sourceURL: sourceURL, outputURL: outputURL, format: format, cube: cube,
+                presetName: preferred, progress: progress)
+        } catch {
+            guard cube == nil, preferred == AVAssetExportPresetPassthrough else { throw error }
+            try await runExport(
+                sourceURL: sourceURL, outputURL: outputURL, format: format, cube: cube,
+                presetName: AVAssetExportPresetHighestQuality, progress: progress)
+        }
+    }
+
+    private static func runExport(
+        sourceURL: URL,
+        outputURL: URL,
+        format: MediaExportFormat,
+        cube: CubeLUT?,
+        presetName: String,
+        progress: @escaping @Sendable (Double) -> Void
+    ) async throws {
+        let asset = AVURLAsset(url: sourceURL)
+        guard let session = AVAssetExportSession(asset: asset, presetName: presetName) else {
+            throw ExportError.sessionSetupFailed
+        }
+        if let cube {
+            session.videoComposition = videoComposition(for: asset, cube: cube)
+        }
+        progress(0.05)
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            try FileManager.default.removeItem(at: outputURL)
+        }
+        let reporter = ExportProgressReporter(session: session, report: progress)
+        let progressTask = Task { await reporter.poll() }
+        defer { progressTask.cancel() }
+        if #available(iOS 18, *) {
+            try await session.export(to: outputURL, as: format.avFileType)
+        } else {
+            session.outputURL = outputURL
+            session.outputFileType = format.avFileType
+            try await withCheckedThrowingContinuation { (cont: CheckedContinuation<Void, Error>) in
+                nonisolated(unsafe) let exportSession = session
+                exportSession.exportAsynchronously {
+                    if exportSession.status == .completed {
+                        cont.resume()
+                    } else {
+                        cont.resume(throwing: exportSession.error ?? ExportError.failed("export"))
+                    }
+                }
+            }
+        }
+        progress(0.95)
+    }
+
+    /// Polls `AVAssetExportSession.progress` during transcode without crossing Swift 6 sendability.
+    private final class ExportProgressReporter: @unchecked Sendable {
+        private let session: AVAssetExportSession
+        private let report: @Sendable (Double) -> Void
+
+        init(session: AVAssetExportSession, report: @escaping @Sendable (Double) -> Void) {
+            self.session = session
+            self.report = report
+        }
+
+        func poll() async {
+            while !Task.isCancelled {
+                let exportProgress = session.progress
+                if exportProgress > 0 {
+                    report(MediaLUT.mappedExportProgress(exportProgress))
+                }
+                try? await Task.sleep(for: .milliseconds(180))
+            }
+        }
+    }
+
+    private static func ensureFileReady(at url: URL) async throws {
+        for _ in 0..<20 {
+            if FileManager.default.isReadableFile(atPath: url.path) { return }
+            try? await Task.sleep(for: .milliseconds(50))
+        }
+        guard FileManager.default.isReadableFile(atPath: url.path) else {
+            throw ExportError.failed("export file never became readable")
+        }
+    }
+
+    private static func makeExportURL(filename: String, format: MediaExportFormat) throws -> URL {
+        let trimmed = filename.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { throw ExportError.invalidFilename }
+        let exports = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("exports", isDirectory: true)
+        try FileManager.default.createDirectory(at: exports, withIntermediateDirectories: true)
+        var name = trimmed
+        if (name as NSString).pathExtension.isEmpty {
+            name = "\(name).\(format.rawValue)"
+        }
+        let url = exports.appendingPathComponent(name)
+        try? FileManager.default.removeItem(at: url)
+        return url
+    }
+
+    private static func writeMetadataSidecar(
+        _ metadata: MediaClipDeliveryMetadata?, nextTo videoURL: URL
+    ) throws -> URL? {
+        guard let metadata else { return nil }
+        let url = videoURL.deletingPathExtension().appendingPathExtension("meta.json")
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
+        encoder.dateEncodingStrategy = .iso8601
+        try encoder.encode(metadata).write(to: url, options: .atomic)
+        return url
+    }
+}

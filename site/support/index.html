@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>OpenPocketCine Support — Connect and monitor</title>
+  <meta name="description" content="Connect an Osmo Pocket over Bluetooth and Wi-Fi, watch live view, and report bugs for OpenPocketCine.">
+  <meta name="theme-color" content="#0A0908">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'; form-action 'none'; upgrade-insecure-requests">
+  <link rel="canonical" href="https://openpocketcine.app/support/">
+  <link rel="icon" href="../assets/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/app.css">
+</head>
+<body class="support-page">
+  <a class="skip-link" href="#support-content">Skip to support content</a>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <header class="support-nav">
+    <div class="container support-nav__inner">
+      <a href="/" class="nav__brand" aria-label="OpenPocketCine home">
+        <img src="../assets/icon.png" alt="" width="28" height="28">
+        <span>OpenPocketCine</span>
+      </a>
+      <nav class="support-nav__links" aria-label="Support navigation">
+        <a href="/">Home</a>
+        <a href="https://github.com/erik-sutton95/OpenPocketCine" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+  <main id="support-content">
+    <section class="support-hero">
+      <div class="container support-hero__inner">
+        <span class="section-label"><span class="rec-dot"></span> Support</span>
+        <h1>Connect the camera.<br><span class="gold">Watch the feed.</span></h1>
+        <p class="lead">
+          OpenPocketCine pairs over Bluetooth, joins the camera's Wi-Fi, and shows a live HEVC or AVC
+          monitor. iOS needs a physical iPhone — the Simulator has no BLE or camera SoftAP.
+        </p>
+      </div>
+    </section>
+    <section class="support-section" id="connect">
+      <div class="container">
+        <span class="section-label">01</span>
+        <h2>Connect a camera</h2>
+        <ol class="support-steps">
+          <li>Power on the Osmo Pocket and keep DJI Mimo closed so it does not steal the link.</li>
+          <li>In OpenPocketCine, scan for the camera over Bluetooth and approve pairing on the camera screen.</li>
+          <li>Allow Local Network and Bluetooth when iOS asks. The app then joins the camera Wi-Fi.</li>
+          <li>Wait for the connection phase to reach Connected. Battery and storage readouts mean the datalink is up.</li>
+        </ol>
+        <p class="support-notice"><strong>Never paste camera Wi-Fi passwords into GitHub issues.</strong></p>
+      </div>
+    </section>
+    <section class="support-section" id="bugs">
+      <div class="container">
+        <span class="section-label">02</span>
+        <h2>Report a problem</h2>
+        <p>
+          Bugs only: open a
+          <a href="https://github.com/erik-sutton95/OpenPocketCine/issues/new?template=bug_report.yml">GitHub bug report</a>.
+          Feature ideas go to
+          <a href="https://github.com/erik-sutton95/OpenPocketCine/discussions/categories/ideas-feature-requests">Discussions</a>.
+          Security issues go to
+          <a href="https://github.com/erik-sutton95/OpenPocketCine/security/advisories/new">private advisories</a>.
+        </p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

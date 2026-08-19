@@ -1,0 +1,98 @@
+name: OpenPocketCine
+options:
+  bundleIdPrefix: com.openpocketview
+  deploymentTarget:
+    iOS: "17.0"
+  createIntermediateGroups: true
+
+packages:
+  OpenPocketViewCore:
+    path: ..
+
+targets:
+  OpenPocketCine:
+    type: application
+    platform: iOS
+    sources:
+      - OpenPocketCine
+    dependencies:
+      - package: OpenPocketViewCore
+        product: OpenPocketViewCore
+    settings:
+      base:
+        # The app shell (CoreBluetooth / Network / Hotspot glue) uses the Swift 5 language mode to
+        # keep the prototype moving; the core package stays Swift 6 strict-concurrency and fully tested.
+        # ponytail: tighten to Swift 6 once the I/O layer is validated on hardware.
+        SWIFT_VERSION: "5.0"
+        # Keep the existing App ID so the on-device install and Hotspot Configuration entitlement
+        # still work. OpenZCine’s pattern is com.opencapture.openzcine; Android can take
+        # com.opencapture.openpocketcine. Display name is OpenPocketCine.
+        PRODUCT_BUNDLE_IDENTIFIER: com.openpocketview.app
+        PRODUCT_NAME: OpenPocketCine
+        MARKETING_VERSION: "0.1"
+        CURRENT_PROJECT_VERSION: "1"
+        TARGETED_DEVICE_FAMILY: "1,2"
+        # Do not put XML comments in the entitlements plist. ProcessProductPackaging
+        # rewrites it in place (strips comments, retabs) and the build then fails with
+        # "Entitlements file was modified during the build".
+        CODE_SIGN_ENTITLEMENTS: OpenPocketCine/OpenPocketView.entitlements
+        GCC_PREPROCESSOR_DEFINITIONS: "$(inherited) CI_SILENCE_GL_DEPRECATION=1"
+        OTHER_SWIFT_FLAGS: "$(inherited) -Xcc -DCI_SILENCE_GL_DEPRECATION"
+        # Same team as OpenZCine — it already has the Hotspot Configuration capability.
+        DEVELOPMENT_TEAM: "4V4EGQ6LZA"
+        CODE_SIGN_STYLE: Automatic
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_CFBundleDisplayName: OpenPocketCine
+        INFOPLIST_KEY_CFBundleName: OpenPocketCine
+        INFOPLIST_KEY_UILaunchScreen_Generation: YES
+        INFOPLIST_KEY_UIUserInterfaceStyle: Dark
+        INFOPLIST_KEY_UIStatusBarStyle: UIStatusBarStyleLightContent
+        INFOPLIST_KEY_UIStatusBarHidden: YES
+        INFOPLIST_KEY_UIViewControllerBasedStatusBarAppearance: NO
+        # Space-separated — a colon list becomes one invalid string and iOS stays portrait-only.
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_CADisableMinimumFrameDurationOnPhone: YES
+        # iPad split-view requires every orientation unless the app is full screen.
+        # Live monitor is a single-scene camera UI — not a split-view client.
+        INFOPLIST_KEY_UIRequiresFullScreen: YES
+        INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad: "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight"
+        INFOPLIST_KEY_NSBluetoothAlwaysUsageDescription: "OpenPocketCine uses Bluetooth to find and pair with your DJI Osmo Pocket and hand off Wi-Fi."
+        INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking: YES
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: "OpenPocketCine talks to your camera over its own Wi-Fi network to read status and video."
+        INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription: "OpenPocketCine saves clips you choose to Photos."
+        INFOPLIST_KEY_NSAppTransportSecurity_NSAllowsLocalNetworking: YES
+        INFOPLIST_FILE: OpenPocketCine/Info-Frameio.plist
+    configFiles:
+      Debug: OpenPocketCine/Frameio.xcconfig
+      Release: OpenPocketCine/Frameio.xcconfig
+
+  OpenPocketCineTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - OpenPocketCineTests
+    dependencies:
+      - target: OpenPocketCine
+      - package: OpenPocketViewCore
+        product: OpenPocketViewCore
+    settings:
+      base:
+        SWIFT_VERSION: "5.0"
+        GENERATE_INFOPLIST_FILE: YES
+        PRODUCT_BUNDLE_IDENTIFIER: com.openpocketview.app.tests
+        DEVELOPMENT_TEAM: "4V4EGQ6LZA"
+        CODE_SIGN_STYLE: Automatic
+        BUNDLE_LOADER: $(TEST_HOST)
+        TEST_HOST: $(BUILT_PRODUCTS_DIR)/OpenPocketCine.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/OpenPocketCine
+
+schemes:
+  OpenPocketCine:
+    build:
+      targets:
+        OpenPocketCine: all
+        OpenPocketCineTests: [test]
+    test:
+      targets:
+        - OpenPocketCineTests

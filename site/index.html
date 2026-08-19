@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>OpenPocketCine: Open-source field monitor for DJI Osmo Pocket</title>
+  <meta name="description" content="OpenPocketCine is a free, open-source field-monitor app for DJI Osmo Pocket cameras. Live view, scopes, and assists over the camera's own Wi-Fi.">
+  <meta name="theme-color" content="#0A0908">
+  <meta name="referrer" content="no-referrer">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; upgrade-insecure-requests">
+  <link rel="canonical" href="https://openpocketcine.app/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="OpenPocketCine: Open-source field monitor for DJI Osmo Pocket">
+  <meta property="og:description" content="Free, open-source field-monitor app for DJI Osmo Pocket. Live view, scopes, and assists.">
+  <meta property="og:url" content="https://openpocketcine.app/">
+  <meta name="twitter:card" content="summary">
+  <link rel="icon" href="assets/icon.png">
+  <link rel="apple-touch-icon" href="assets/icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <a class="skip-link" href="#top">Skip to content</a>
+  <div class="bg-glow" aria-hidden="true"></div>
+  <div class="grain" aria-hidden="true"></div>
+
+  <header class="nav" id="nav">
+    <div class="container nav__inner">
+      <a href="#top" class="nav__brand">
+        <img src="assets/icon.png" alt="OpenPocketCine" width="28" height="28">
+        <span>OpenPocketCine</span>
+      </a>
+      <nav class="nav__links" aria-label="Primary">
+        <a href="#monitor">Monitor</a>
+        <a href="#open-source">Open Source</a>
+        <a href="/support/">Support</a>
+      </nav>
+      <div class="nav__cta">
+        <a class="nav__github" href="https://github.com/erik-sutton95/OpenPocketCine" target="_blank" rel="noopener" aria-label="OpenPocketCine on GitHub">★ GitHub</a>
+        <a class="btn btn--primary" href="https://github.com/erik-sutton95/OpenPocketCine"><span class="btn__rec" aria-hidden="true"></span>Get the source</a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="hero" id="hero">
+      <div class="hero__inner container">
+        <span class="section-label" data-intro><span class="rec-dot"></span> Field Monitor · Open Source</span>
+        <h1 data-intro>The open field<br>monitor for <span class="gold">Osmo&nbsp;Pocket.</span></h1>
+        <p class="lead" data-intro>
+          Pair over Bluetooth, join the camera's Wi-Fi, and watch a live HEVC (or AVC) feed
+          with professional scopes and assists. Free, Apache-2.0, no vendor SDK.
+        </p>
+        <div class="hero__actions" data-intro>
+          <a class="btn btn--primary" href="https://github.com/erik-sutton95/OpenPocketCine">Get the source</a>
+          <a class="btn" href="/support/">How to connect</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="statement" id="monitor">
+      <div class="container">
+        <p class="statement__text">
+          Built for <span class="w--gold">Osmo Pocket 4 / 4 Pro</span> and Nano.
+          iOS first; Android lives in the same repository.
+        </p>
+      </div>
+    </section>
+
+    <section id="open-source">
+      <div class="container">
+        <span class="section-label">Free. Open source. Yours</span>
+        <h2>No subscriptions, no telemetry.</h2>
+        <p class="lead">
+          OpenPocketCine is Apache-2.0 licensed and built in public. Inspect the protocol core,
+          improve the monitor, and keep the tool you rely on.
+        </p>
+        <p>
+          This project is not affiliated with DJI. I learned BLE pairing and camera Wi-Fi
+          connection with the help of
+          <a href="https://github.com/KonradIT/osmosis">Osmosis</a> by Konrad Iturbe, and I'm
+          grateful. The field-monitor architecture follows
+          <a href="https://github.com/erik-sutton95/OpenZCine">OpenZCine</a>.
+          Verify record start/stop on the camera body until you trust the link.
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p>© 2026 OpenPocketCine. Apache-2.0.</p>
+      <nav aria-label="Footer">
+        <a href="/privacy/">Privacy</a>
+        <a href="/terms/">Terms</a>
+        <a href="/support/">Support</a>
+        <a href="https://github.com/erik-sutton95/OpenPocketCine">GitHub</a>
+      </nav>
+    </div>
+  </footer>
+</body>
+</html>
