@@ -34,8 +34,8 @@ in this repository and is not on Google Play yet.
   industry-standard focus peaking work directly on the monitor feed.
 - **Frame once for every delivery.** Stack grids, guides, and crosshairs without losing sight of
   the shot.
-- **Keep the camera in the rig.** Saved-camera profiles, Bluetooth pairing, and a join to the
-  camera's own Wi-Fi — then ISO, EV, zoom, gimbal, and record from the phone.
+- **Run the camera from the cage.** Full camera control, plus Pocket 4 Pro fixes such as zoom
+  in D-Log2 — OpenPocketCine switches automatically so you keep moving.
 - **Lock a face the official app won't.** Custom face tracking drives a hard gimbal lock-on —
   something Mimo has been missing.
 - **Review before striking the set.** Browse clips, scrub playback, check scopes, and preview the
@@ -75,8 +75,9 @@ grids, and crosshairs sit on a rail next to the image — including in portrait.
   </a>
 </p>
 
-**Camera control.** Keep the camera in the rig. Pair over Bluetooth, join the camera's
-Wi-Fi, then set ISO, EV, zoom, gimbal, and record from the phone on your cage.
+**Camera control.** Full camera controls from the phone, plus fixes for Pocket 4 Pro
+gotchas — zoom while you're in D-Log2 is one of them. OpenPocketCine handles that
+switch automatically so you keep moving.
 
 <p align="center">
   <a href="https://openpocketcine.app/#commander">
