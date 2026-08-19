@@ -13,12 +13,14 @@
   <meta property="og:title" content="OpenPocketCine: Open-source field monitor for DJI Osmo Pocket">
   <meta property="og:description" content="Free, open-source field-monitor app for DJI Osmo Pocket. Live view, scopes, and assists.">
   <meta property="og:url" content="https://openpocketcine.app/">
-  <meta name="twitter:card" content="summary">
+  <meta property="og:image" content="https://openpocketcine.app/assets/screens/hero-monitor.webp">
+  <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/icon.png">
   <link rel="apple-touch-icon" href="assets/icon.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=Geist+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+  <link rel="preload" as="image" href="assets/screens/hero-monitor.webp">
   <link rel="stylesheet" href="assets/app.css">
 </head>
 <body>
@@ -33,7 +35,9 @@
         <span>OpenPocketCine</span>
       </a>
       <nav class="nav__links" aria-label="Primary">
-        <a href="#monitor">Monitor</a>
+        <a href="#scopes">Scopes</a>
+        <a href="#commander">Control</a>
+        <a href="#portrait">Portrait</a>
         <a href="#open-source">Open Source</a>
         <a href="/support/">Support</a>
       </nav>
@@ -53,9 +57,15 @@
           Pair over Bluetooth, join the camera's Wi-Fi, and watch a live HEVC (or AVC) feed
           with professional scopes and assists. Free, Apache-2.0, no vendor SDK.
         </p>
-        <div class="hero__actions" data-intro>
+        <div class="hero__cta" data-intro>
           <a class="btn btn--primary" href="https://github.com/erik-sutton95/OpenPocketCine">Get the source</a>
-          <a class="btn" href="/support/">How to connect</a>
+          <a class="btn btn--ghost" href="/support/">How to connect</a>
+        </div>
+
+        <div class="hero__mock" data-intro>
+          <img src="assets/screens/hero-monitor.webp"
+            alt="OpenPocketCine recording: red telltale, ISO 800, shutter 1/80, D-Log2, and assist chips"
+            width="1600" height="1067" decoding="async">
         </div>
       </div>
     </section>
@@ -66,6 +76,45 @@
           Built for <span class="w--gold">Osmo Pocket 4 / 4 Pro</span> and Nano.
           iOS first; Android lives in the same repository.
         </p>
+      </div>
+    </section>
+
+    <section class="section feat-section" id="scopes">
+      <div class="container grid grid--2 feat-row">
+        <div class="feat-row__copy">
+          <span class="section-label"><span class="rec-dot"></span> Scopes</span>
+          <h2>Read the image like a colorist.</h2>
+          <p class="lead">Waveform and RED-inspired Traffic Lights sit on the live Pocket feed, next to the picture you are judging.</p>
+        </div>
+        <div class="feat-row__visual">
+          <img src="assets/screens/scopes.webp" alt="OpenPocketCine waveform and Traffic Lights over a live feed" width="1600" height="1120" loading="lazy" decoding="async">
+        </div>
+      </div>
+    </section>
+
+    <section class="section feat-section" id="commander">
+      <div class="container grid grid--2 feat-row feat-row--reverse">
+        <div class="feat-row__copy">
+          <span class="section-label"><span class="rec-dot"></span> Control</span>
+          <h2>Keep the camera in the rig.</h2>
+          <p class="lead">ISO, shutter, zoom, gimbal, and record from the phone — including Auto D-Log switching so zoom still works.</p>
+        </div>
+        <div class="feat-row__visual">
+          <img src="assets/screens/camera-controls.webp" alt="OpenPocketCine camera controls while recording at 3x zoom" width="1600" height="1067" loading="lazy" decoding="async">
+        </div>
+      </div>
+    </section>
+
+    <section class="section feat-section" id="portrait">
+      <div class="container grid grid--2 feat-row">
+        <div class="feat-row__copy">
+          <span class="section-label"><span class="rec-dot"></span> Portrait</span>
+          <h2>Vertical shooting, full assist rail.</h2>
+          <p class="lead">LUT, peaking, false color, zebra, waveform, parade, histogram, vectorscope, Traffic Lights, guides, grid, and crosshair — all in the portrait layout.</p>
+        </div>
+        <div class="feat-row__visual">
+          <img src="assets/screens/portrait-assists.webp" alt="OpenPocketCine portrait monitor with the full assist rail" width="1600" height="1600" loading="lazy" decoding="async">
+        </div>
       </div>
     </section>
 

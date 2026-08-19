@@ -4,6 +4,12 @@
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](LICENSE)
 
 <p align="center">
+  <a href="https://openpocketcine.app/">
+    <img alt="OpenPocketCine live monitor recording with ISO, shutter, white balance, and assist chips" src="site/assets/screens/hero-monitor.webp" width="820">
+  </a>
+</p>
+
+<p align="center">
   <strong>The open field monitor for DJI Osmo Pocket.</strong><br>
   Pro monitoring scopes, playback, camera control, and Camera-to-Cloud export with LUT
   baking. Free and open source.
@@ -37,6 +43,32 @@ in this repository and is not on Google Play yet.
 
 Verify record start/stop on the camera body until you trust the link. Reverse-engineered control
 can be incomplete.
+
+## See it in action
+
+### Live monitoring and camera control
+
+<p align="center">
+  <a href="https://openpocketcine.app/#commander">
+    <img alt="OpenPocketCine camera controls with ISO, shutter, zoom, gimbal, and record" src="site/assets/screens/camera-controls.webp" width="820">
+  </a>
+</p>
+
+### Scopes and on-set assists
+
+<p align="center">
+  <a href="https://openpocketcine.app/#scopes">
+    <img alt="OpenPocketCine waveform and Traffic Lights over a live Pocket feed" src="site/assets/screens/scopes.webp" width="820">
+  </a>
+</p>
+
+### Vertical shooting
+
+<p align="center">
+  <a href="https://openpocketcine.app/#portrait">
+    <img alt="OpenPocketCine portrait monitor with the full assist rail" src="site/assets/screens/portrait-assists.webp" width="820">
+  </a>
+</p>
 
 ## Available today
 
