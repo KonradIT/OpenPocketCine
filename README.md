@@ -46,7 +46,8 @@ can be incomplete.
 
 ## See it in action
 
-### Scopes and on-set assists
+**Scopes.** Read the image like a colorist. Waveform, RGB parade, histogram, and
+vectorscope run live beside the image you are judging, with Traffic Lights on the feed.
 
 <p align="center">
   <a href="https://openpocketcine.app/#scopes">
@@ -54,7 +55,8 @@ can be incomplete.
   </a>
 </p>
 
-### Portrait assist rail
+**View assist.** Catch it before the take. False color, zebras, Traffic Lights, peaking,
+grids, and crosshairs sit on a rail next to the image — including in portrait.
 
 <p align="center">
   <a href="https://openpocketcine.app/#assists">
@@ -62,7 +64,8 @@ can be incomplete.
   </a>
 </p>
 
-### Camera control
+**Camera control.** Keep the camera in the rig. Pair over Bluetooth, join the camera's
+Wi-Fi, then set ISO, EV, zoom, gimbal, and record from the phone on your cage.
 
 <p align="center">
   <a href="https://openpocketcine.app/#commander">
