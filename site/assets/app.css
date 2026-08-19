@@ -897,7 +897,6 @@ h3 { font-size: clamp(20px, 2.4vw, 26px); line-height: 1.2; letter-spacing: -0.0
   text-align: center;
 }
 #credits h2 { margin: 4px 0 16px; }
-#credits h2:nth-of-type(2) { margin-top: 48px; }
 #credits .lead { margin-bottom: 14px; }
 #credits p { color: var(--muted); max-width: 62ch; }
 #credits a {

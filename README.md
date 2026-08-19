@@ -136,10 +136,6 @@ for that connection story, not a source I copied.
 Please go look at [Osmosis](https://github.com/KonradIT/osmosis) too. If you care about talking to
 Osmo cameras, Konrad's work is worth your time.
 
-### OpenZCine
-
-The field-monitor architecture follows [OpenZCine](https://github.com/erik-sutton95/OpenZCine).
-
 ## No vendor SDK
 
 This project is not affiliated with DJI. No DJI SDK or proprietary documentation is included in,
