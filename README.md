@@ -46,6 +46,15 @@ can be incomplete.
 
 ## See it in action
 
+**Live monitor.** Histogram, zebras, and a LUT sit on the feed while you record.
+Face tracking keeps the gimbal on the subject.
+
+<p align="center">
+  <a href="https://openpocketcine.app/">
+    <img alt="Live monitor recording with histogram, zebras, and face tracking" src="site/assets/screens/face-lock.webp" width="820">
+  </a>
+</p>
+
 **Scopes.** Read the image like a colorist. Waveform, RGB parade, histogram, and
 vectorscope run live beside the image you are judging, with Traffic Lights on the feed.
 
