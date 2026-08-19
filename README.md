@@ -36,6 +36,8 @@ in this repository and is not on Google Play yet.
   the shot.
 - **Keep the camera in the rig.** Saved-camera profiles, Bluetooth pairing, and a join to the
   camera's own Wi-Fi — then ISO, EV, zoom, gimbal, and record from the phone.
+- **Lock a face the official app won't.** Custom face tracking drives a hard gimbal lock-on —
+  something Mimo has been missing.
 - **Review before striking the set.** Browse clips, scrub playback, check scopes, and preview the
   selected look on-device.
 - **Ship it with the look baked in.** Apply built-in or custom `.cube` LUTs, then send through
@@ -46,12 +48,12 @@ can be incomplete.
 
 ## See it in action
 
-**Live monitor.** Histogram, zebras, and a LUT sit on the feed while you record.
-Face tracking keeps the gimbal on the subject.
+**Face lock.** Custom face tracking for a hard gimbal lock-on — something Mimo has been
+missing. Histogram, zebras, and a LUT stay on the feed while you record.
 
 <p align="center">
   <a href="https://openpocketcine.app/">
-    <img alt="Live monitor recording with histogram, zebras, and face tracking" src="site/assets/screens/face-lock.webp" width="820">
+    <img alt="Live monitor with custom face tracking for gimbal lock-on" src="site/assets/screens/face-lock.webp" width="820">
   </a>
 </p>
 
