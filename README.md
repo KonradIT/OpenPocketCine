@@ -84,8 +84,8 @@ lives in [`docs/ROADMAP.md`](docs/ROADMAP.md).
 ## Free. Open source. Yours
 
 No subscriptions, no paywalls, no advertising, and no telemetry. OpenPocketCine is Apache-2.0
-licensed and built in public with Claude Code and Codex so filmmakers and developers can inspect,
-improve, and adapt the tool they rely on.
+licensed and built in public with the latest frontier models — Grok, Codex, and Claude — so
+filmmakers and developers can inspect, improve, and adapt the tool they rely on.
 
 ## Architecture
 
@@ -106,8 +106,8 @@ See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 ### Built in the open
 
-OpenPocketCine is deliberately, transparently built with agentic coding tools. Engineering
-guidelines live in [`AGENTS.md`](AGENTS.md).
+OpenPocketCine is deliberately, transparently built in public with the latest frontier models
+such as Grok, Codex, and Claude. Engineering guidelines live in [`AGENTS.md`](AGENTS.md).
 
 OpenPocketCine went through an extended private R&D phase before publication; the public
 repository starts from a clean slate with a squashed initial commit rather than carrying the
