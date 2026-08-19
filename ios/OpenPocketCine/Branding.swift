@@ -12,7 +12,7 @@ enum BrandColors {
     static let accentSoft = Color(red: 0, green: 163 / 255, blue: 230 / 255).opacity(0.18)
 }
 
-/// OPC mark. Prefers the AppLogo raster (not a Z-CAM logo); falls back to a drawn monogram.
+/// App mark from the AppLogo raster; falls back to a drawn monogram.
 struct OPCMonogramMark: View {
     var size: CGFloat = 72
 
@@ -22,7 +22,7 @@ struct OPCMonogramMark: View {
             if let logo = UIImage(named: "AppLogo") ?? UIImage(named: "AppLogo.png") {
                 Image(uiImage: logo)
                     .resizable()
-                    .scaledToFill()
+                    .scaledToFit()
                     .frame(width: size, height: size)
                     .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
             } else {
@@ -75,9 +75,9 @@ struct BrandBackdrop: View {
         ZStack {
             LinearGradient(
                 colors: [
-                    BrandColors.backgroundDeep,
-                    BrandColors.background,
-                    Color(red: 0.09, green: 0.078, blue: 0.062),
+                    Color(red: 8 / 255, green: 8 / 255, blue: 8 / 255),
+                    Color(red: 14 / 255, green: 14 / 255, blue: 14 / 255),
+                    Color(red: 8 / 255, green: 8 / 255, blue: 8 / 255),
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -85,14 +85,13 @@ struct BrandBackdrop: View {
 
             RadialGradient(
                 colors: [
-                    BrandColors.accentSoft,
+                    Color(red: 45 / 255, green: 111 / 255, blue: 160 / 255).opacity(0.28),
                     .clear,
                 ],
-                center: .topTrailing,
+                center: .topLeading,
                 startRadius: 20,
                 endRadius: 420
             )
-            .blendMode(.screen)
         }
         .ignoresSafeArea()
     }

@@ -12,8 +12,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -35,7 +35,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
@@ -177,27 +179,21 @@ private fun LaunchSplashOverlay(visible: Boolean) {
         enter = androidx.compose.animation.EnterTransition.None,
         exit = fadeOut(tween(durationMillis = 350)),
     ) {
-        BoxWithConstraints(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFF0A0908))) {
+        BoxWithConstraints(Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color(0xFF0E0E0E))) {
             val landscape = maxWidth >= maxHeight
             val logoSize = minOf(maxWidth * if (landscape) 0.16f else 0.28f, 96.dp)
             val logoCorner = logoSize * 0.22f
             val wordmarkSp = if (landscape) 34.sp else 30.sp
             @Composable
             fun OpcMark() {
-                Box(
-                    Modifier.size(logoSize)
-                        .clip(RoundedCornerShape(logoCorner))
-                        .background(BrandColors.surface)
-                        .border(1.dp, BrandColors.accent.copy(alpha = 0.55f), RoundedCornerShape(logoCorner)),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        "OPC",
-                        color = BrandColors.accent,
-                        fontSize = (logoSize.value * 0.34f).sp,
-                        fontWeight = FontWeight.Black,
-                    )
-                }
+                Image(
+                    painter = painterResource(R.drawable.opc_app_logo),
+                    contentDescription = "OpenPocketCine",
+                    modifier = Modifier
+                        .size(logoSize)
+                        .clip(RoundedCornerShape(logoCorner)),
+                    contentScale = ContentScale.Fit,
+                )
             }
             if (landscape) {
                 Row(
