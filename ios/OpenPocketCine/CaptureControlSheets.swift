@@ -183,6 +183,14 @@ struct CapturePickerPanel: View {
             }
             reseatShutterOrEv()
         }
+        .onChange(of: model.session.status.evComp) { _, _ in
+            guard isEvSheet else { return }
+            reseatEv()
+        }
+        .onChange(of: model.facePriorityExposureEnabled) { _, _ in
+            guard isEvSheet else { return }
+            reseatEv()
+        }
         .onChange(of: model.session.status.colorMode) { _, _ in
             guard sheet == .iso else { return }
             reseatIso()
@@ -235,8 +243,13 @@ struct CapturePickerPanel: View {
             }
         case .shutter:
             if isEvSheet {
-                CaptureDrumWheel(options: evLabels, selection: $drumSelection)
+                VStack(alignment: .leading, spacing: 12) {
+                    CaptureDrumWheel(
+                        options: evLabels, selection: $drumSelection,
+                        isInteractive: !model.facePriorityExposureEnabled)
                     .id(evLabels)
+                    facePriorityToggle
+                }
             } else if isAngleSheet {
                 CaptureDrumWheel(options: shutterAngleLabels, selection: $drumSelection)
                     .id(shutterAngleLabels)
@@ -433,6 +446,28 @@ struct CapturePickerPanel: View {
         .onAppear { tintDraft = Double(currentTint) }
     }
 
+    private var facePriorityToggle: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Text(CaptureLists.facePriorityTitle)
+                .font(LiveType.ui(size: 13, weight: .bold, design: .default))
+                .kerning(0.4)
+                .textCase(.uppercase)
+                .foregroundStyle(LiveDesign.text)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            HelpBadge(text: CaptureLists.facePriorityHelp)
+            Spacer(minLength: 8)
+            Toggle("", isOn: Binding(
+                get: { model.facePriorityExposureEnabled },
+                set: { model.facePriorityExposureEnabled = $0 }
+            ))
+            .labelsHidden()
+            .tint(LiveDesign.accent)
+            .accessibilityLabel(CaptureLists.facePriorityTitle)
+            .accessibilityHint(CaptureLists.facePriorityHelp)
+        }
+    }
+
     private var nativeIsoHopToggle: some View {
         HStack(alignment: .center, spacing: 8) {
             Text(CaptureLists.nativeIsoHopTitle)
@@ -519,7 +554,9 @@ struct CapturePickerPanel: View {
     }
 
     private var headerSubtitle: String {
-        if isEvSheet { return "Compensation" }
+        if isEvSheet {
+            return model.facePriorityExposureEnabled ? "Face priority" : "Compensation"
+        }
         if sheet == .shutter { return isAngleSheet ? "Angle" : "Speed" }
         return sheet.subtitle
     }
@@ -692,6 +729,7 @@ struct CapturePickerPanel: View {
             enqueueDrumSend { model.session.setISO(idx) }
         case .shutter:
             if isEvSheet {
+                guard !model.facePriorityExposureEnabled else { return }
                 guard let ev = EvComp(label: value) else { return }
                 enqueueDrumSend { model.session.setEv(ev) }
                 return
@@ -970,6 +1008,11 @@ enum CaptureLists {
     static func isoMarkedLabels(from status: CameraStatus) -> Set<String> {
         CamCapIso.markedLabels(transfer: status.monitorTransfer)
     }
+
+    static let facePriorityTitle = "Face Priority"
+    static let facePriorityBadgeSymbol = "face.smiling.fill"
+    static let facePriorityHelp =
+        "On: EV follows faces to middle gray. Several faces use the median. First couple of seconds after a face appears are faster, then about 1 s. Off: put EV back to what it was, or 0.0."
 
     static let nativeIsoHopTitle = "Auto Native ISO"
     static let nativeIsoHopHelp =

@@ -29,7 +29,10 @@ struct LiveCameraControlBar: View {
         HStack(spacing: 0) {
             tile(.iso, label: "ISO", value: isoValue, widest: "25600")
             if model.session.status.expoMode == .auto {
-                tile(.shutter, label: "EV", value: evValue, widest: "+3.0")
+                tile(
+                    .shutter, label: "EV", value: evValue, widest: "+3.0",
+                    badgeIcon: model.facePriorityExposureEnabled
+                        ? CaptureLists.facePriorityBadgeSymbol : nil)
             } else {
                 tile(
                     .shutter, label: "SHUTTER", value: shutterValue,
@@ -58,7 +61,8 @@ struct LiveCameraControlBar: View {
         label: String,
         value: String,
         widest: String,
-        valueIcon: String? = nil
+        valueIcon: String? = nil,
+        badgeIcon: String? = nil
     ) -> some View {
         let isActive = model.captureSheet == sheet
         return Button {
@@ -69,7 +73,8 @@ struct LiveCameraControlBar: View {
                 value: value,
                 widest: widest,
                 isActive: isActive,
-                valueIcon: valueIcon
+                valueIcon: valueIcon,
+                badgeIcon: badgeIcon
             )
         }
         .buttonStyle(.plain)
@@ -85,7 +90,8 @@ struct LiveCameraControlBar: View {
             }
         }
         .accessibilityLabel(label)
-        .accessibilityValue(value)
+        .accessibilityValue(
+            badgeIcon == nil ? value : "\(value), \(CaptureLists.facePriorityTitle)")
     }
 
     private func open(_ sheet: CaptureSheet) {
@@ -156,12 +162,22 @@ struct CaptureBarReadout: View {
     let widest: String
     var isActive = false
     var valueIcon: String? = nil
+    /// Shown beside the label (EV Face Priority). Distinct from `valueIcon`, which replaces the value.
+    var badgeIcon: String? = nil
 
     var body: some View {
         VStack(spacing: 3) {
-            Text(label)
-                .font(LiveType.ui(size: 9, weight: .semibold, design: .default))
-                .foregroundStyle(isActive ? LiveDesign.accent : LiveDesign.muted)
+            HStack(spacing: 3) {
+                Text(label)
+                    .font(LiveType.ui(size: 9, weight: .semibold, design: .default))
+                if let badgeIcon {
+                    // System face — LiveType.ui is IBM Plex, which drops SF Symbols.
+                    Image(systemName: badgeIcon)
+                        .font(.system(size: 11, weight: .semibold))
+                        .symbolRenderingMode(.monochrome)
+                }
+            }
+            .foregroundStyle(isActive ? LiveDesign.accent : LiveDesign.muted)
             Text(widest)
                 .font(.system(size: 17, weight: .medium, design: .default))
                 .hidden()

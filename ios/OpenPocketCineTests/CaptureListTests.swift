@@ -72,6 +72,12 @@ final class CaptureListTests: XCTestCase {
             "zoom tele hop guess must not flip the star while status is still D-Log2")
     }
 
+    func testFacePriorityCopy() {
+        XCTAssertEqual(CaptureLists.facePriorityTitle, "Face Priority")
+        XCTAssertEqual(CaptureLists.facePriorityBadgeSymbol, "face.smiling.fill")
+        XCTAssertFalse(CaptureLists.facePriorityHelp.isEmpty)
+    }
+
     func testNativeIsoHopCopy() {
         XCTAssertEqual(CaptureLists.nativeIsoHopTitle, "Auto Native ISO")
         XCTAssertFalse(CaptureLists.nativeIsoHopHelp.isEmpty)
