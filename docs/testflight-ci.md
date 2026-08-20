@@ -3,6 +3,8 @@
 Xcode Cloud is the TestFlight path: Apple-managed signing, a build counter, and a native
 upload after archive. There is no GitHub Actions TestFlight workflow.
 
+Public join link: <https://testflight.apple.com/join/1tmt3aEB>
+
 ## What the cloud workflow does
 
 | Step | Where it lives |
@@ -23,8 +25,8 @@ One-time App Store Connect / Xcode setup is the wizard:
 ./scripts/setup-xcode-cloud.sh
 ```
 
-That walkthrough creates (or reuses) the app record for `com.openpocketview.app`, connects this
-GitHub repo, and defines the `main` Archive workflow.
+That walkthrough reuses the App Store Connect record for `com.opencapture.openpocketcine`,
+connects this GitHub repo, and defines the `main` Archive workflow.
 
 ## After the workflow exists
 
