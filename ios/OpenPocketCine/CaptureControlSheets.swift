@@ -222,13 +222,16 @@ struct CapturePickerPanel: View {
     @ViewBuilder private var content: some View {
         switch sheet {
         case .iso:
-            if isIsoAutoTab {
-                CaptureDrumWheel(options: isoAutoDrumLabels, selection: $drumSelection)
-                    .id(isoAutoDrumLabels)
-            } else {
-                CaptureDrumWheel(
-                    options: isoDrumLabels, selection: $drumSelection,
-                    markedValues: isoMarkedLabels)
+            VStack(alignment: .leading, spacing: 12) {
+                if isIsoAutoTab {
+                    CaptureDrumWheel(options: isoAutoDrumLabels, selection: $drumSelection)
+                        .id(isoAutoDrumLabels)
+                } else {
+                    CaptureDrumWheel(
+                        options: isoDrumLabels, selection: $drumSelection,
+                        markedValues: isoMarkedLabels)
+                }
+                nativeIsoHopToggle
             }
         case .shutter:
             if isEvSheet {
@@ -428,6 +431,28 @@ struct CapturePickerPanel: View {
             .foregroundStyle(LiveDesign.accent)
         }
         .onAppear { tintDraft = Double(currentTint) }
+    }
+
+    private var nativeIsoHopToggle: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Text(CaptureLists.nativeIsoHopTitle)
+                .font(LiveType.ui(size: 13, weight: .bold, design: .default))
+                .kerning(0.4)
+                .textCase(.uppercase)
+                .foregroundStyle(LiveDesign.text)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7)
+            HelpBadge(text: CaptureLists.nativeIsoHopHelp)
+            Spacer(minLength: 8)
+            Toggle("", isOn: Binding(
+                get: { model.nativeISOHopEnabled },
+                set: { model.nativeISOHopEnabled = $0 }
+            ))
+            .labelsHidden()
+            .tint(LiveDesign.accent)
+            .accessibilityLabel(CaptureLists.nativeIsoHopTitle)
+            .accessibilityHint(CaptureLists.nativeIsoHopHelp)
+        }
     }
 
     private var modeBar: some View {
@@ -945,6 +970,10 @@ enum CaptureLists {
     static func isoMarkedLabels(from status: CameraStatus) -> Set<String> {
         CamCapIso.markedLabels(transfer: status.monitorTransfer)
     }
+
+    static let nativeIsoHopTitle = "Auto Native ISO"
+    static let nativeIsoHopHelp =
+        "On: switching D-Log ↔ D-Log2 hops ISO to that curve's starred native if you were still on native. Off: keep the ISO you set."
 
     static let kelvinValues = Array(stride(from: 2_000, through: 10_000, by: 100))
     static let kelvinLabels = kelvinValues.map { "\($0)K" }
