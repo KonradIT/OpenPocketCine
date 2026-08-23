@@ -1,5 +1,5 @@
-import SwiftUI
 import OpenPocketViewCore
+import SwiftUI
 
 /// OpenZCine `PortraitScopesStack` — first ≤2 enabled scopes, 96 pt units, canonical order.
 struct LivePortraitScopesStack: View {
@@ -53,9 +53,9 @@ struct LivePortraitRecOptionsButton: View {
         Button {
             popoverOpen = true
         } label: {
-            Image(systemName: "video.badge.waveform")
-                .font(.system(size: 16, weight: .medium))
+            OpcIcon.audioWaveform
                 .foregroundStyle(LiveDesign.text.opacity(0.86))
+                .frame(width: 16, height: 16)
                 .frame(width: 40, height: 40)
                 .liquidGlass(in: Circle())
         }
@@ -106,16 +106,12 @@ struct LivePortraitAspectToggle: View {
         Button {
             aspect = aspect == .fill ? .fit16x9 : .fill
         } label: {
-            Image(
-                systemName: aspect == .fill
-                    ? "arrow.down.right.and.arrow.up.left"
-                    : "arrow.up.left.and.arrow.down.right"
-            )
-            .font(.system(size: 15, weight: .semibold))
-            .foregroundStyle(LiveDesign.text)
-            .frame(width: 40, height: 40)
-            .background(.black.opacity(0.55), in: Circle())
-            .overlay(Circle().strokeBorder(LiveDesign.hairline, lineWidth: 1))
+            (aspect == .fill ? OpcIcon.minimize : OpcIcon.maximize)
+                .frame(width: 15, height: 15)
+                .foregroundStyle(LiveDesign.text)
+                .frame(width: 40, height: 40)
+                .background(.black.opacity(0.55), in: Circle())
+                .overlay(Circle().strokeBorder(LiveDesign.hairline, lineWidth: 1))
         }
         .buttonStyle(.zcTapTarget)
         .accessibilityLabel(aspect == .fill ? "Fit feed in frame" : "Fill frame with feed")
@@ -145,9 +141,9 @@ struct LivePortraitAssistRail: View {
         Button {
             withAnimation(.spring(duration: 0.28)) { expanded = true }
         } label: {
-            Image(systemName: "slider.horizontal.3")
-                .font(.system(size: 16, weight: .semibold))
+            OpcIcon.slidersHorizontal
                 .foregroundStyle(LiveDesign.text)
+                .frame(width: 16, height: 16)
                 .frame(width: 44, height: 44)
                 .liveChromeGlass(in: Circle())
         }
@@ -160,9 +156,9 @@ struct LivePortraitAssistRail: View {
             Button {
                 withAnimation(.spring(duration: 0.28)) { expanded = false }
             } label: {
-                Image(systemName: "chevron.left")
-                    .font(.system(size: 13, weight: .bold))
+                OpcIcon.chevronLeft
                     .foregroundStyle(LiveDesign.accent)
+                    .frame(width: 13, height: 13)
                     .frame(width: 36, height: 28)
             }
             .buttonStyle(.zcTapTarget)

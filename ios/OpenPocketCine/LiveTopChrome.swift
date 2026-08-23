@@ -1,5 +1,5 @@
-import SwiftUI
 import OpenPocketViewCore
+import SwiftUI
 
 enum LiveTopMenu: Equatable {
     case recFormat
@@ -61,7 +61,8 @@ private struct LiveTimecodeLabel: View {
             head = clock
             seconds = ""
         }
-        return (Text("TC \(head)").foregroundStyle(LiveDesign.text)
+        return
+            (Text("TC \(head)").foregroundStyle(LiveDesign.text)
             + Text(seconds).foregroundStyle(LiveDesign.accent))
             .font(.system(size: 20, weight: .medium, design: .monospaced))
             .lineLimit(1)
@@ -90,9 +91,10 @@ struct FPSChip: View {
 
     var body: some View {
         HStack(spacing: 6) {
-            Image(systemName: "cellularbars", variableValue: Double(signalBars) / 4.0)
-                .font(.system(size: 14, weight: .semibold))
+            OpcIcon.signal
                 .foregroundStyle(signalTint)
+                .frame(width: 14, height: 14)
+                .opacity(max(0.35, Double(signalBars) / 4.0))
             Text("FPS")
                 .font(.system(size: 8, weight: .bold, design: .monospaced))
                 .foregroundStyle(LiveDesign.faint)
@@ -178,7 +180,7 @@ struct LiveTopChrome: View {
             guard !interfaceLocked else { return }
             menu = active ? nil : .recFormat
         } label: {
-            inlineReadout(icon: "video", value: recFormatLabel, isActive: active)
+            inlineReadout(icon: .video, value: recFormatLabel, isActive: active)
         }
         .buttonStyle(.zcTapTarget)
         .geometryGroup()
@@ -193,7 +195,7 @@ struct LiveTopChrome: View {
             guard !interfaceLocked else { return }
             menu = active ? nil : .color
         } label: {
-            inlineReadout(icon: "circle.lefthalf.filled", value: colorLabel, isActive: active)
+            inlineReadout(icon: .contrast, value: colorLabel, isActive: active)
         }
         .buttonStyle(.zcTapTarget)
         .geometryGroup()
@@ -206,7 +208,7 @@ struct LiveTopChrome: View {
         Button {
             showStorageDuration.toggle()
         } label: {
-            inlineReadout(icon: "sdcard", value: storageLabel)
+            inlineReadout(icon: .folder, value: storageLabel)
                 .contentShape(Rectangle())
         }
         .buttonStyle(.zcTapTarget)
@@ -272,7 +274,8 @@ struct LiveTopPickerHost: View {
     private static let revealCurve = Animation.timingCurve(0.16, 1, 0.3, 1, duration: 0.20)
 
     var body: some View {
-        let cell = frames[menu ?? .recFormat]
+        let cell =
+            frames[menu ?? .recFormat]
             ?? CGRect(x: topDeck.midX - 40, y: topDeck.minY, width: 80, height: topDeck.height)
         let place = LivePopupPlacement.topPicker(
             cell: cell,
@@ -398,10 +401,10 @@ extension LiveTopChrome {
         return "—"
     }
 
-    private func inlineReadout(icon: String, value: String, isActive: Bool = false) -> some View {
+    private func inlineReadout(icon: OpcIcon, value: String, isActive: Bool = false) -> some View {
         let content = HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 12, weight: .semibold))
+            icon
+                .frame(width: 12, height: 12)
                 .foregroundStyle(isActive ? LiveDesign.accent : LiveDesign.muted)
             Text(value.replacingOccurrences(of: " · ", with: "·"))
                 .font(.system(size: 15, weight: .medium, design: .monospaced))

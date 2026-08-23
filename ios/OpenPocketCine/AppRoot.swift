@@ -1,7 +1,7 @@
 import Observation
+import OpenPocketViewCore
 import SwiftUI
 import UIKit
-import OpenPocketViewCore
 
 /// App-level session object (OpenZCine `NativeAppModel` analogue). Owns the existing
 /// `CameraSession` connection spine and the saved-camera list. Does not rewrite DUML.
@@ -162,12 +162,12 @@ final class AppModel {
     var isLive: Bool {
         if session.holdsMonitor { return true }
         if case .live = session.phase { return true }
-#if targetEnvironment(simulator)
-        // No Pocket in Simulator — LiveViewScreen plays the D-Log2 Downloads clip.
-        return true
-#else
-        return false
-#endif
+        #if targetEnvironment(simulator)
+            // No Pocket in Simulator — LiveViewScreen plays the D-Log2 Downloads clip.
+            return true
+        #else
+            return false
+        #endif
     }
 
     var isBusy: Bool {
@@ -389,6 +389,7 @@ struct AppRoot: View {
 /// Connection home: first-pair wizard, or saved cameras. Mirrors OpenZCine `LinkExperience`.
 struct LinkExperience: View {
     @Environment(AppModel.self) private var model
+    @Environment(\.openURL) private var openURL
 
     var body: some View {
         GeometryReader { proxy in
@@ -402,10 +403,10 @@ struct LinkExperience: View {
                     title: headerTitle,
                     statusTitle: statusTitle,
                     isBusy: isBusy,
-                    onPrivacy: { model.homePanel = .privacy },
-                    onTerms: { model.homePanel = .terms }
+                    onPrivacy: { if let url = OpenPocketCineLinks.privacy { openURL(url) } },
+                    onTerms: { if let url = OpenPocketCineLinks.terms { openURL(url) } }
                 )
-                    .padding(.horizontal, 20)
+                .padding(.horizontal, 20)
 
                 if wizardFillsViewport {
                     ConnectionSetupView(compact: compact)
@@ -432,7 +433,7 @@ struct LinkExperience: View {
 
     private var headerTitle: String {
         if model.shouldShowWizard { return "Connection setup" }
-        if !model.savedCameras.isEmpty { return "Your cameras" }
+        if !model.savedCameras.isEmpty { return "Operator Setup" }
         return "Find your camera"
     }
 

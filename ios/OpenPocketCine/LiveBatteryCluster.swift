@@ -11,13 +11,13 @@ struct LiveBatteryCluster: View {
         VStack(alignment: .leading, spacing: 5) {
             LiveBatteryRow(
                 percent: phonePercent,
-                deviceSystemName: UIDevice.current.userInterfaceIdiom == .pad ? "ipad" : "iphone",
+                deviceIcon: .smartphone,
                 isCharging: phoneCharging,
                 isCamera: false
             )
             LiveBatteryRow(
                 percent: cameraPercent,
-                deviceSystemName: "camera",
+                deviceIcon: .camera,
                 isCharging: model.session.status.charging,
                 isCamera: true
             )
@@ -52,20 +52,19 @@ struct LiveBatteryCluster: View {
 /// One compact gauge row: device icon beside a battery-shaped outline with the number inside.
 private struct LiveBatteryRow: View {
     let percent: Int
-    let deviceSystemName: String
+    let deviceIcon: OpcIcon
     var isCharging: Bool
     var isCamera: Bool
 
     var body: some View {
         HStack(spacing: 5) {
-            Image(systemName: deviceSystemName)
-                .font(.system(size: 10, weight: .medium))
+            deviceIcon
                 .foregroundStyle(LiveDesign.muted)
-                .frame(width: 10)
+                .frame(width: 10, height: 10)
             HStack(spacing: 1) {
                 if isCharging {
-                    Image(systemName: "bolt.fill")
-                        .font(.system(size: 7, weight: .bold))
+                    OpcIcon.zap
+                        .frame(width: 7, height: 7)
                         .foregroundStyle(batteryTint)
                 }
                 Text(readout)
