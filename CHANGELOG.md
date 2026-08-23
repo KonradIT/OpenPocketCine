@@ -53,7 +53,8 @@ All notable changes to this project are documented here. The format is based on
   Live-path SLOs: [`docs/PERFORMANCE.md`](docs/PERFORMANCE.md). Operator UX /
   FTUE: [`docs/UX.md`](docs/UX.md). Agent task graphs:
   [`docs/WORKFLOW.md`](docs/WORKFLOW.md). Runtime trust boundaries:
-  [`SECURITY.md`](SECURITY.md).
+  [`SECURITY.md`](SECURITY.md). Git and version trains:
+  [`docs/RELEASE.md`](docs/RELEASE.md).
 - Public handbook at [openpocketcine.app/docs](https://openpocketcine.app/docs/)
   covers protocol, iOS and Android apps, and setup — not protocol only. Same-PR
   update rule: `handbook/src/content/docs/contribute/documentation.md`.

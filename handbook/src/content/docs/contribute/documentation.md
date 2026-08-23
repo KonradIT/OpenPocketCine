@@ -25,6 +25,7 @@ Gotchas that only agents need stay in `docs/live-session.md`.
 | DUML, BLE, opcode, pktType, HEVC/AVC payload | Matching page under `handbook/src/content/docs/protocol/` |
 | Operator-visible chrome, assists, connection UX | [`docs/PARITY.md`](https://github.com/erik-sutton95/OpenPocketCine/blob/main/docs/PARITY.md) **and** the [iOS](../apps/ios/) or [Android](../apps/android/) app page if the public description changed |
 | Build, toolchain, how to run | [Setup](../guides/setup/) and `CONTRIBUTING.md` if GitHub workflow changed |
+| Git, tags, version trains | [`docs/RELEASE.md`](https://github.com/erik-sutton95/OpenPocketCine/blob/main/docs/RELEASE.md) (not Git Flow; no `develop`) |
 | Architecture seams (core vs shell) | [Architecture](../apps/architecture/) if the public map changed; `docs/ARCHITECTURE.md` is the seam table |
 | Live-path budgets (ACK Hz, HUD Hz) | `docs/PERFORMANCE.md` (not duplicated here) |
 | First-run / operator copy | `docs/UX.md`; handbook only if the public FTUE description changed |
