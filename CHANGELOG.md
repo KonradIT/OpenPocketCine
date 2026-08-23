@@ -248,6 +248,13 @@ All notable changes to this project are documented here. The format is based on
 
 ### Fixed
 
+- Android no longer crashes on launch on API 29/30. The AndroidX splash icon
+  `opc_splash_empty` was a `<vector>` with no `<path>`, and `VectorDrawable`
+  rejects that with "no path defined", so `installSplashScreen()` threw before
+  the first frame. API 31+ draws the splash in the platform and never inflated
+  it, so only `minSdk` devices were affected. The hold is still fully
+  transparent.
+
 - Android playback drops Kyant. The transport plate is 82% DJI black so type
   reads; the top row is back + filename + star with no bar. Chrome lives in
   the same overlay as the video gestures so transport buttons receive taps.
