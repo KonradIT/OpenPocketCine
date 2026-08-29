@@ -46,9 +46,17 @@ fun applyImmersiveSystemBars(window: Window) {
  * OpenZCine sticky-immersive cycle: observe an inward swipe from a screen
  * edge, `show()` the bars so real insets land, hold, then `hide()`.
  * Pointer events are not consumed — chrome and pairing still get the tap.
+ *
+ * Only the live monitor runs immersive. With [enabled] false the bars are the
+ * platform's to draw, so the cycle stands down entirely — otherwise a stray
+ * edge swipe on setup would `hide()` them and take the status-bar inset with it.
  */
 @Composable
-fun ImmersiveSystemBarCycle(content: @Composable () -> Unit) {
+fun ImmersiveSystemBarCycle(enabled: Boolean = true, content: @Composable () -> Unit) {
+    if (!enabled) {
+        CompositionLocalProvider(LocalImmersiveBarInsets provides Insets.NONE) { content() }
+        return
+    }
     var barsShown by remember { mutableStateOf(false) }
     var barInsets by remember { mutableStateOf(Insets.NONE) }
     val view = LocalView.current
@@ -118,5 +126,13 @@ fun ImmersiveSystemBarCycle(content: @Composable () -> Unit) {
         ) {
             content()
         }
+    }
+}
+
+/** Restores the system bars. Setup and pairing chrome needs a real status-bar inset. */
+fun showSystemBars(window: Window) {
+    WindowCompat.getInsetsController(window, window.decorView).apply {
+        systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
+        show(WindowInsetsCompat.Type.systemBars())
     }
 }

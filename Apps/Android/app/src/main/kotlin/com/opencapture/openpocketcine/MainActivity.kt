@@ -26,6 +26,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -66,6 +69,13 @@ class MainActivity : ComponentActivity() {
     private val composeFirstFrameDrawn = AtomicBoolean(false)
     private lateinit var model: AppModel
 
+    /**
+     * Only the live monitor hides the system bars. Setup and pairing keep them so
+     * their chrome gets a real status-bar inset instead of drawing under the clock.
+     * [onWindowFocusChanged] reasserts whichever mode the current screen asked for.
+     */
+    @Volatile var wantsImmersive = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         splashScreen.setKeepOnScreenCondition { !composeFirstFrameDrawn.get() }
@@ -78,7 +88,6 @@ class MainActivity : ComponentActivity() {
         window.isNavigationBarContrastEnforced = false
         window.attributes.layoutInDisplayCutoutMode =
             WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
-        applyImmersiveSystemBars(window)
         setContent {
             SideEffect { composeFirstFrameDrawn.set(true) }
             OpenPocketCineTheme {
@@ -92,7 +101,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
         super.onWindowFocusChanged(hasFocus)
-        if (hasFocus) applyImmersiveSystemBars(window)
+        if (!hasFocus) return
+        if (wantsImmersive) applyImmersiveSystemBars(window) else showSystemBars(window)
     }
 
     override fun onPause() {
@@ -158,13 +168,20 @@ private fun OpenPocketCineApp(model: AppModel) {
         model.showsLaunchSplash = false
     }
 
-    LaunchedEffect(activity) {
+    val showLive = phase == ConnectionPhase.LIVE || model.session.holdsMonitor
+    // Only the monitor itself runs immersive. Media library and settings open as
+    // full-screen panels *over* live, and they are ordinary chrome: their
+    // statusBarsPadding() measures zero while the bars are hidden, so the header
+    // rides under the clock. Bring the bars back for as long as a panel is up.
+    val immersive = showLive && model.liveOperatorPanel == null
+
+    LaunchedEffect(activity, immersive) {
         val window = activity?.window ?: return@LaunchedEffect
-        applyImmersiveSystemBars(window)
+        (activity as? MainActivity)?.wantsImmersive = immersive
+        if (immersive) applyImmersiveSystemBars(window) else showSystemBars(window)
     }
 
-    val showLive = phase == ConnectionPhase.LIVE || model.session.holdsMonitor
-    ImmersiveSystemBarCycle {
+    ImmersiveSystemBarCycle(enabled = immersive) {
     Box(Modifier.fillMaxSize().startupBackdrop()) {
         if (showLive) {
             LiveViewScreen(model)
@@ -221,6 +238,10 @@ private fun LinkExperience(
     Column(
         Modifier
             .fillMaxSize()
+            // Two insets, and they never both apply. Setup keeps the bars up, so safeDrawing
+            // carries the real status-bar height; the monitor hides them, so safeDrawing is
+            // empty there and the transient swipe-reveal lanes below do the work instead.
+            .windowInsetsPadding(WindowInsets.safeDrawing)
             .padding(start = barStart, top = 16.dp + barTop, end = barEnd, bottom = 16.dp + barBottom),
     ) {
         Box(Modifier.padding(horizontal = 20.dp)) {
