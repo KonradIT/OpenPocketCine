@@ -86,6 +86,11 @@ final class CameraSession {
     private var secondsSinceFocusTrackSet: TimeInterval? {
         lastFocusTrackAt.map { Date().timeIntervalSince($0) }
     }
+    /// Last zoom `0xB8` SET. Same grace as AF-C while the lens slews.
+    @ObservationIgnored private var lastZoomSetAt: Date?
+    private var secondsSinceZoomSet: TimeInterval? {
+        lastZoomSetAt.map { Date().timeIntervalSince($0) }
+    }
     @ObservationIgnored private var feedWatchdog = FeedWatchdog()
     @ObservationIgnored private var lastFeedFreezeLogAt: Date?
     @ObservationIgnored private var feedRecoveryTask: Task<Void, Never>?
@@ -320,7 +325,13 @@ final class CameraSession {
         decoder.onHandoffNeedsIDR = { [weak self] in
             guard let self else { return }
             if self.isBrowsingMedia { return }
-            if Date().timeIntervalSince(self.lastIdrRequest) < 1 { return }
+            let since = Date().timeIntervalSince(self.lastIdrRequest)
+            guard
+                FeedWatchdog.shouldSendEnableForAssistVTStart(
+                    secondsSinceLastEnable: since,
+                    hasPresentedPicture: self.decoder.lastPresentedAt != nil,
+                    liveViewEnableSends: self.liveViewEnableSends)
+            else { return }
             self.sendRecoverEnable(force: true, reason: "assist VT start")
         }
         decoder.onParameterSetsChanged = { [weak self] in
@@ -1228,6 +1239,7 @@ final class CameraSession {
             "zoom: setZoomStop locked=\(isLocked) live=\(datalink != nil)"
         )
         guard !isLocked else { return }
+        lastZoomSetAt = Date()
         let frame = Commands.setZoomStop()
         fireCamera(
             frame, name: "Zoom stop",
@@ -1263,6 +1275,7 @@ final class CameraSession {
                 ?? (value == CamFov.slewTele
                     ? "Zoom 1×" : value == CamFov.slewWide ? "Zoom 3×" : "Zoom slew")
         }
+        lastZoomSetAt = Date()
         fireCamera(
             frame, name: name,
             expect: announce ? target.map { .zoom($0) } : nil,
@@ -2934,6 +2947,10 @@ final class CameraSession {
             log.info("control: SET timeouts during AF-C grace — leave UDP")
             return
         }
+        if CamFov.shouldHoldWatchdog(secondsSinceSet: secondsSinceZoomSet) {
+            log.info("control: SET timeouts during zoom grace — leave UDP")
+            return
+        }
         commandTimeoutsAt.removeAll()
         log.info("control: SET timeouts with video stale — rebuild UDP")
         ControlLiveLog.line("control: SET timeouts, video stale — rebuilding UDP")
@@ -2959,6 +2976,9 @@ final class CameraSession {
             return false
         }
         if FocusTrackMode.shouldHoldWatchdog(secondsSinceSet: secondsSinceFocusTrackSet) {
+            return false
+        }
+        if CamFov.shouldHoldWatchdog(secondsSinceSet: secondsSinceZoomSet) {
             return false
         }
         let videoFresh =
@@ -3179,7 +3199,8 @@ final class CameraSession {
                 videoPackets: datalink?.videoPackets ?? 0,
                 lastVideoPacketAge: datalink?.lastVideoPacketAt.map { now.timeIntervalSince($0) }),
             secondsSinceLastEnable: now.timeIntervalSince(lastIdrRequest),
-            secondsSinceFocusTrackSet: secondsSinceFocusTrackSet
+            secondsSinceFocusTrackSet: secondsSinceFocusTrackSet,
+            secondsSinceZoomSet: secondsSinceZoomSet
         )
         let action = feedWatchdog.tick(snap)
         feedRecovering = feedWatchdog.isRecovering || feedRecoveryTask != nil
@@ -3213,6 +3234,16 @@ final class CameraSession {
                 )
                 ControlLiveLog.line(
                     "feed: hold UDP rebuild — AF-C grace lastSet=\(String(format: "%.1f", snap.secondsSinceFocusTrackSet ?? -1))s"
+                )
+                logFeedObserve(snap: snap, watchdog: action)
+            } else if !FeedWatchdog.udpReceiveAlive(snap),
+                CamFov.shouldHoldWatchdog(secondsSinceSet: snap.secondsSinceZoomSet)
+            {
+                log.info(
+                    "feed: hold UDP rebuild — zoom grace lastSet=\(snap.secondsSinceZoomSet ?? -1, format: .fixed(precision: 1), privacy: .public)s lastVideo=\(snap.lastVideoPacketAge ?? -1, format: .fixed(precision: 1), privacy: .public)s"
+                )
+                ControlLiveLog.line(
+                    "feed: hold UDP rebuild — zoom grace lastSet=\(String(format: "%.1f", snap.secondsSinceZoomSet ?? -1))s"
                 )
                 logFeedObserve(snap: snap, watchdog: action)
             }

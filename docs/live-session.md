@@ -50,6 +50,14 @@ live after gallery).
 
 **Enable-once:** `0x09/0xa8` starts the stream and is the only PLI. After
 picture, further enables follow the [watchdog](feed-watchdog.md) only.
+Persisted LUT/WAVE starting VT after the identity layer already presented
+must still PLI — skipping because the live-start enable was `< 1 s` ago
+leaves a fresh VT with no IDR (WAITING FOR LIVE VIEW while `lastVideo=0`).
+
+Same-raster VPS/SPS (zoom `0xB8`, FORMAT SET, color hop) is not a screen-flip
+GOP. Do not tear VT/MediaCodec or begin an IDR hold when the 720p size did not
+change. Holding IDR then skipping enable (UDP still alive) drops the picture
+while HUD and gimbal keep moving.
 
 **Pocket 3 first picture:** the body boots 4K 25/30, HUD and gimbal work,
 and the well stays black until the operator SETs 1080 then 4K
