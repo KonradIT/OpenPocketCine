@@ -487,6 +487,10 @@ class CaptureSheetTest {
         assertEquals(7, CaptureLists.currentTint(unknownKelvin))
         assertEquals("5600K", CaptureLists.wbDrumSelection(autoCleared))
         assertEquals("3200K", CaptureLists.wbDrumSelection(custom))
+        val autoKeepsLast =
+            CameraStatus(wbMode = CameraCommands.WB_AUTO, wbKelvin = 4200, wbTint = 20)
+        assertEquals(4200 to 20, CaptureLists.wbCustomFromStatus(autoKeepsLast))
+        assertEquals("4200K", CaptureLists.wbDrumSelection(autoKeepsLast))
     }
 
     @Test
@@ -514,6 +518,13 @@ class CaptureSheetTest {
         val status = CameraStatus(wbMode = CameraCommands.WB_CUSTOM, wbKelvin = 5600, wbTint = 0)
         assertEquals(5600 to -10, CaptureLists.wbCustomFromTint(-10f, status))
         assertEquals(5600 to 100, CaptureLists.wbCustomFromTint(140f, status))
+        assertTrue(
+            !CaptureLists.wbTintStaysAuto(
+                CameraStatus(wbMode = CameraCommands.WB_CUSTOM, wbKelvin = 5600),
+            ),
+        )
+        assertTrue(CaptureLists.wbTintStaysAuto(CameraStatus(wbMode = CameraCommands.WB_AUTO)))
+        assertTrue(CaptureLists.wbTintStaysAuto(CameraStatus()))
     }
 
     @Test
@@ -623,10 +634,35 @@ class CaptureSheetTest {
         assertTrue(!CaptureLists.resolutionTabTitles.contains("2.7K"))
         assertTrue(!CaptureLists.fpsDrumLabels.contains("120p"))
         assertEquals(
-            listOf("Normal", "HDR", "D-Log", "D-Log2"),
+            listOf("Normal", "HDR", "D-Log"),
             CaptureLists.colorWheelLabels(CameraStatus()),
         )
+        assertEquals(
+            listOf("Normal", "HDR", "D-Log", "D-Log2"),
+            CaptureLists.colorWheelLabels(
+                CameraStatus(),
+                family = "pocket",
+                name = "Osmo Pocket 4 Pro",
+            ),
+        )
+        assertEquals(
+            listOf("Normal", "HDR", "D-Log M"),
+            CaptureLists.colorWheelLabels(
+                CameraStatus(),
+                family = "pocket",
+                name = "Osmo Pocket 3",
+            ),
+        )
+        assertEquals(
+            listOf("Normal", "HDR", "D-Log"),
+            CaptureLists.colorWheelLabels(
+                CameraStatus(),
+                family = "pocket",
+                name = "Osmo Pocket 4",
+            ),
+        )
         assertEquals(CameraCommands.COLOR_DLOG2, CaptureLists.colorModeFromLabel("D-Log2"))
+        assertEquals(CameraCommands.COLOR_DLOG_M, CaptureLists.colorModeFromLabel("D-Log M"))
         assertEquals(
             listOf("Normal", "HDR", "D-Log", "D-Log2"),
             CaptureLists.colorWheel(
@@ -637,7 +673,32 @@ class CaptureSheetTest {
                     CameraCommands.COLOR_HDR,
                     CameraCommands.COLOR_NORMAL,
                 ),
+                "Osmo Pocket 4 Pro",
             ).map { it.second },
+        )
+        assertTrue(
+            CaptureLists.colorWheel(
+                "pocket",
+                listOf(
+                    CameraCommands.COLOR_DLOG2,
+                    CameraCommands.COLOR_DLOG,
+                    CameraCommands.COLOR_HDR,
+                    CameraCommands.COLOR_NORMAL,
+                ),
+                "Osmo Pocket 3",
+            ).none { it.first == CameraCommands.COLOR_DLOG2 },
+        )
+        assertTrue(
+            CaptureLists.colorWheel(
+                "pocket",
+                listOf(
+                    CameraCommands.COLOR_DLOG2,
+                    CameraCommands.COLOR_DLOG,
+                    CameraCommands.COLOR_HDR,
+                    CameraCommands.COLOR_NORMAL,
+                ),
+                "Osmo Pocket 4",
+            ).none { it.first == CameraCommands.COLOR_DLOG2 },
         )
         assertNull(CaptureLists.colorModeFromLabel("N-Log"))
     }
@@ -911,16 +972,17 @@ class CaptureSheetTest {
 
     @Test
     fun colorDrumHopsNativeIsoAfterColorSetAndRejectsOffFamily() {
+        val pro = "Osmo Pocket 4 Pro"
         val dlog2Native =
             CameraStatus(colorMode = CameraCommands.COLOR_DLOG2, isoIndex = 0x07)
         assertEquals(
             ColorDrumCommand(CameraCommands.COLOR_DLOG, 0x05),
-            CaptureLists.applyColorDrum("D-Log", "pocket", dlog2Native, hopEnabled = true),
+            CaptureLists.applyColorDrum("D-Log", "pocket", dlog2Native, hopEnabled = true, name = pro),
         )
         val dlogNative = CameraStatus(colorMode = CameraCommands.COLOR_DLOG, isoIndex = 0x05)
         assertEquals(
             ColorDrumCommand(CameraCommands.COLOR_DLOG2, 0x07),
-            CaptureLists.applyColorDrum("D-Log2", "pocket", dlogNative, hopEnabled = true),
+            CaptureLists.applyColorDrum("D-Log2", "pocket", dlogNative, hopEnabled = true, name = pro),
         )
         assertEquals(
             ColorDrumCommand(CameraCommands.COLOR_DLOG, null),
@@ -929,11 +991,14 @@ class CaptureSheetTest {
                 "pocket",
                 CameraStatus(colorMode = CameraCommands.COLOR_DLOG2, isoIndex = 0x06),
                 hopEnabled = true,
+                name = pro,
             ),
         )
         assertEquals(
             ColorDrumCommand(CameraCommands.COLOR_DLOG2, null),
-            CaptureLists.applyColorDrum("D-Log2", "pocket", dlogNative, hopEnabled = false),
+            CaptureLists.applyColorDrum(
+                "D-Log2", "pocket", dlogNative, hopEnabled = false, name = pro,
+            ),
         )
         assertEquals(
             ColorDrumCommand(CameraCommands.COLOR_DLOG, null),
@@ -942,13 +1007,33 @@ class CaptureSheetTest {
                 "pocket",
                 CameraStatus(colorMode = CameraCommands.COLOR_DLOG2, isoIndex = 0),
                 hopEnabled = true,
+                name = pro,
             ),
         )
         assertEquals(
             ColorDrumCommand(CameraCommands.COLOR_NORMAL, null),
-            CaptureLists.applyColorDrum("Normal", "pocket", dlog2Native, hopEnabled = true),
+            CaptureLists.applyColorDrum(
+                "Normal", "pocket", dlog2Native, hopEnabled = true, name = pro,
+            ),
         )
         assertNull(CaptureLists.applyColorDrum("D-Log2", "nano", CameraStatus(), hopEnabled = true))
+        assertNull(CaptureLists.applyColorDrum("D-Log2", "pocket", CameraStatus(), hopEnabled = true))
+        assertNull(
+            CaptureLists.applyColorDrum(
+                "D-Log2", "pocket", CameraStatus(), hopEnabled = true, name = "Osmo Pocket 4",
+            ),
+        )
+        assertNull(
+            CaptureLists.applyColorDrum(
+                "D-Log2", "pocket", CameraStatus(), hopEnabled = true, name = "Osmo Pocket 3",
+            ),
+        )
+        assertEquals(
+            ColorDrumCommand(CameraCommands.COLOR_DLOG_M, null),
+            CaptureLists.applyColorDrum(
+                "D-Log M", "pocket", CameraStatus(), hopEnabled = true, name = "Osmo Pocket 3",
+            ),
+        )
         assertNull(CaptureLists.applyColorDrum("N-Log", "pocket", CameraStatus(), hopEnabled = true))
         assertEquals(
             ColorDrumCommand(CameraCommands.COLOR_NORMAL, null),
@@ -972,10 +1057,7 @@ class CaptureSheetTest {
                 availableColorModes =
                     listOf(CameraCommands.COLOR_NORMAL, CameraCommands.COLOR_DLOG),
             )
-        assertEquals(
-            ColorDrumCommand(CameraCommands.COLOR_DLOG, null),
-            CaptureLists.applyColorDrum("D-Log", "nano", nanoWithDLog, hopEnabled = true),
-        )
+        assertNull(CaptureLists.applyColorDrum("D-Log", "nano", nanoWithDLog, hopEnabled = true))
     }
 
     @Test
@@ -1134,11 +1216,57 @@ class CaptureSheetTest {
             VideoFormat.nextForDrum(live, tab = 0, drum = "60p"),
         )
         assertNull(VideoFormat.nextForDrum(live, tab = 0, drum = "120p"))
+        val boot = VideoFormat(VideoResolution.P4K, VideoFrameRate.FPS25)
+        assertEquals(
+            VideoFormat(VideoResolution.P1080, VideoFrameRate.FPS25),
+            VideoFormat.firstPictureEncoderKick(boot),
+        )
+        assertEquals(
+            boot,
+            VideoFormat.firstPictureOriginal(
+                CameraStatus(
+                    fps = 25,
+                    resolutionCode = CameraCommands.RES_4K,
+                    fpsIndex = 2,
+                ),
+            ),
+        )
+        assertEquals(
+            VideoFormat(VideoResolution.P4K, VideoFrameRate.FPS30),
+            VideoFormat.firstPictureOriginal(CameraStatus()),
+            "unknown falls back to 4K 30, not 1080 24",
+        )
         assertEquals(VideoResolution.P4K, VideoResolution.fromTabIndex(1))
         assertEquals(VideoResolution.P1080, VideoResolution.fromTabIndex(0))
         assertEquals(
             listOf("1080", "4K"),
             CaptureLists.modeTabs(LiveSheet.FORMAT, expoMode = -1, offersIsoAuto = false),
+        )
+        val fourKOnly =
+            live.copy(
+                resolutionCode = CameraCommands.RES_4K,
+                fpsIndex = 1,
+                fps = 24,
+                availableVideoFormats =
+                    listOf(
+                        VideoFormat(VideoResolution.P4K, VideoFrameRate.FPS24),
+                        VideoFormat(VideoResolution.P4K, VideoFrameRate.FPS25),
+                    ),
+            )
+        assertEquals(
+            listOf("4K"),
+            CaptureLists.modeTabs(LiveSheet.FORMAT, fourKOnly, offersIsoAuto = false),
+        )
+        assertEquals(
+            listOf("24p", "25p"),
+            CaptureLists.fpsDrumLabels(fourKOnly, tab = 0),
+        )
+        assertEquals(
+            VideoFormat(VideoResolution.P4K, VideoFrameRate.FPS25),
+            CaptureLists.nextVideoFormat(fourKOnly, tab = 0, drum = "25p", fromDrum = true),
+        )
+        assertNull(
+            CaptureLists.nextVideoFormat(fourKOnly, tab = 0, drum = "60p", fromDrum = true),
         )
     }
 

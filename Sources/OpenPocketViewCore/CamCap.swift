@@ -199,12 +199,83 @@ public enum CamCapColorMode {
     public static func wheel(
         available: [ColorMode], family: CameraBodyFamily
     ) -> [ColorMode] {
-        let order = ColorMode.available(for: family)
+        wheel(available: available, order: ColorMode.available(for: family))
+    }
+
+    public static func wheel(available: [ColorMode], model: CameraModel) -> [ColorMode] {
+        wheel(available: available, order: ColorMode.available(for: model))
+    }
+
+    /// Body order is the legal set. `camcap_color_mode` may subset it.
+    /// It cannot add D-Log2 (or `0x17` D-Log) to a body that does not have them.
+    private static func wheel(available: [ColorMode], order: [ColorMode]) -> [ColorMode] {
         guard !available.isEmpty else { return order }
         let have = Set(available)
         let ranked = order.filter { have.contains($0) }
-        let extras = available.filter { !order.contains($0) }
-        return ranked + extras
+        return ranked.isEmpty ? order : ranked
+    }
+}
+
+/// `camcap_video_format` — legal `[res][fps]` pairs for the current shooting mode.
+///
+/// Mimo live-start 2026-08-28 (Pocket 4 Pro, Video):
+/// `01 25 00 0c` then 12× `[res][fps_idx] 00` — 4K 24–60 then 1080p 60–24.
+/// Slow-mo 100/120/240 is a different shooting mode; this table is Video only.
+public enum CamCapVideoFormat {
+    public static let subscribeKey = "camcap_video_format"
+
+    public static func parse(_ value: [UInt8]) -> [VideoFormat] {
+        guard value.count >= 5, value[0] == 0x01 else { return [] }
+        let inner = Int(value[1]) | (Int(value[2]) << 8)
+        guard inner >= 2, 3 + inner <= value.count else { return [] }
+        let body = Array(value[3..<(3 + inner)])
+        let count = Int(body[0])
+        guard count >= 1, body.count >= 1 + count * 3 else { return [] }
+        var out: [VideoFormat] = []
+        var seen = Set<VideoFormat>()
+        var i = 1
+        for _ in 0..<count {
+            guard i + 2 < body.count else { break }
+            if let format = VideoFormat.parseVideoParamV2(Array(body[i..<(i + 2)])),
+                seen.insert(format).inserted
+            {
+                out.append(format)
+            }
+            i += 3
+        }
+        return out
+    }
+
+    public static func resolutions(
+        available: [VideoFormat], current: VideoResolution?
+    ) -> [VideoResolution] {
+        if available.isEmpty {
+            return VideoResolution.allCases
+        }
+        var seen = Set<VideoResolution>()
+        var out: [VideoResolution] = []
+        for format in available where seen.insert(format.resolution).inserted {
+            out.append(format.resolution)
+        }
+        if let current, !seen.contains(current) {
+            out.insert(current, at: 0)
+        }
+        return out
+    }
+
+    public static func frameRates(
+        available: [VideoFormat], resolution: VideoResolution, current: VideoFrameRate?
+    ) -> [VideoFrameRate] {
+        let rates = available.filter { $0.resolution == resolution }.map(\.frameRate)
+        if rates.isEmpty {
+            // SlowMo 100/120/240 is not a labeled Video SET. Until camcap
+            // republishes that mode, keep the live rate rather than offering 24–60.
+            if let current, !VideoFrameRate.labeledVideo.contains(current) {
+                return [current]
+            }
+            return VideoFrameRate.labeledVideo
+        }
+        return rates
     }
 }
 

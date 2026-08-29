@@ -137,8 +137,9 @@ fun LiveControlSheet(
     var drumJob by remember { mutableStateOf<Job?>(null) }
     val isIsoAutoTab = sheet == LiveSheet.ISO && offersIsoAuto && selectedMode == 0
     val isAngleSheet = CaptureLists.isAngleSheet(sheet, status.expoMode, selectedMode)
-    val tabs = CaptureLists.modeTabs(sheet, status.expoMode, offersIsoAuto)
+    val tabs = CaptureLists.modeTabs(sheet, status, offersIsoAuto)
     val bodyFamily = model.session.connectedCamera?.model?.family ?: "pocket"
+    val bodyName = model.session.connectedCamera?.model?.name ?: ""
 
     fun enqueueDrumSend(send: () -> Unit) {
         if (!enabled) return
@@ -192,14 +193,15 @@ fun LiveControlSheet(
 
     fun reseatResolution() {
         val format = VideoFormat.current(status)
-        selectedMode = VideoResolution.entries.indexOf(format.resolution).coerceAtLeast(0)
+        val tabs = CaptureLists.formatResolutions(status)
+        selectedMode = tabs.indexOf(format.resolution).coerceAtLeast(0)
         val label = format.frameRate.drumLabel
         drumSelection = label
         lastApplied = label
     }
 
     fun reseatColor() {
-        val labels = CaptureLists.colorWheelLabels(status, bodyFamily)
+        val labels = CaptureLists.colorWheelLabels(status, bodyFamily, bodyName)
         val live = CameraCommands.colorLabel(status.colorMode, bodyFamily)
         val next = if (live in labels) live else labels.firstOrNull().orEmpty()
         drumSelection = next
@@ -225,12 +227,7 @@ fun LiveControlSheet(
     }
 
     fun applyVideoFormat(tab: Int, drum: String, fromDrum: Boolean) {
-        val next =
-            if (fromDrum) {
-                VideoFormat.nextForDrum(status, tab, drum)
-            } else {
-                VideoFormat.nextForTab(status, tab, drum)
-            } ?: return
+        val next = CaptureLists.nextVideoFormat(status, tab, drum, fromDrum) ?: return
         model.setVideoFormat(next)
     }
 
@@ -263,6 +260,7 @@ fun LiveControlSheet(
                 family = bodyFamily,
                 status = status,
                 hopEnabled = model.nativeISOHopEnabled,
+                name = bodyName,
             )?.let { model.setColorMode(it.colorMode) }
             return
         }
@@ -314,6 +312,7 @@ fun LiveControlSheet(
                         family = bodyFamily,
                         status = status,
                         hopEnabled = model.nativeISOHopEnabled,
+                        name = bodyName,
                     ) ?: return
                 // Session.setColorMode hops native ISO — same as iOS CameraSession.
                 enqueueDrumSend { model.setColorMode(command.colorMode) }
@@ -360,7 +359,7 @@ fun LiveControlSheet(
     LaunchedEffect(sheet, status.evComp, model.facePriorityExposureEnabled) {
         if (sheet == LiveSheet.SHUTTER && isEvSheet) reseatEv()
     }
-    LaunchedEffect(sheet, status.resolutionCode, status.fpsIndex) {
+    LaunchedEffect(sheet, status.resolutionCode, status.fpsIndex, status.availableVideoFormats) {
         if (sheet == LiveSheet.FORMAT) reseatResolution()
     }
     LaunchedEffect(sheet, status.colorMode) {
@@ -532,9 +531,14 @@ fun LiveControlSheet(
                                 enabled = enabled,
                                 onTint = { tintDraft = it },
                                 onCommit = { value ->
-                                    val custom = CaptureLists.wbCustomFromTint(value, status)
-                                    tintDraft = custom.second.toFloat()
-                                    model.setWhiteBalance(custom.first, custom.second)
+                                    val tint = CaptureLists.roundedTint(value)
+                                    tintDraft = tint.toFloat()
+                                    if (CaptureLists.wbTintStaysAuto(status)) {
+                                        model.setWhiteBalanceAuto(tint)
+                                    } else {
+                                        val custom = CaptureLists.wbCustomFromTint(value, status)
+                                        model.setWhiteBalance(custom.first, custom.second)
+                                    }
                                 },
                             )
                         }
@@ -562,7 +566,7 @@ fun LiveControlSheet(
                 LiveSheet.AUDIO -> AudioBody(status, enabled, selectedMode, model)
                 LiveSheet.COLOR ->
                     CaptureDrumWheel(
-                        options = CaptureLists.colorWheelLabels(status, bodyFamily),
+                        options = CaptureLists.colorWheelLabels(status, bodyFamily, bodyName),
                         selection = drumSelection,
                         interactive = enabled,
                         maxHeightDp = CaptureLists.topPickerDrumHeight(maxHeightDp, hasTabs = false),
@@ -574,7 +578,7 @@ fun LiveControlSheet(
                 LiveSheet.FORMAT ->
                     androidx.compose.runtime.key(selectedMode) {
                         CaptureDrumWheel(
-                            options = CaptureLists.fpsDrumLabels,
+                            options = CaptureLists.fpsDrumLabels(status, selectedMode),
                             selection = drumSelection,
                             interactive = enabled,
                             maxHeightDp = CaptureLists.topPickerDrumHeight(maxHeightDp, hasTabs = true),
@@ -1211,8 +1215,10 @@ private fun initialSelectedMode(
             if (CaptureLists.offersIsoAuto(status) && status.isoIndex != 0) 1 else 0
         LiveSheet.SHUTTER -> if (!isEvSheet && model.shutterUsesAngle) 1 else 0
         LiveSheet.WB -> CaptureLists.wbInitialTab(status)
-        LiveSheet.FORMAT ->
-            VideoResolution.entries.indexOf(VideoFormat.current(status).resolution).coerceAtLeast(0)
+        LiveSheet.FORMAT -> {
+            val format = VideoFormat.current(status)
+            CaptureLists.formatResolutions(status).indexOf(format.resolution).coerceAtLeast(0)
+        }
         else -> 0
     }
 
@@ -1493,14 +1499,52 @@ object CaptureLists {
         }
 
     fun modeTabs(sheet: LiveSheet, expoMode: Int, offersIsoAuto: Boolean): List<String> =
+        modeTabs(sheet, CameraStatus(expoMode = expoMode), offersIsoAuto)
+
+    fun modeTabs(sheet: LiveSheet, status: CameraStatus, offersIsoAuto: Boolean): List<String> =
         when {
             sheet == LiveSheet.ISO && offersIsoAuto -> listOf("Auto", "Manual")
-            sheet == LiveSheet.SHUTTER -> shutterModeTabs(isEvSheet(sheet, expoMode))
+            sheet == LiveSheet.SHUTTER -> shutterModeTabs(isEvSheet(sheet, status.expoMode))
             sheet == LiveSheet.WB -> CaptureLists.wbTabs
             sheet == LiveSheet.AUDIO -> CaptureLists.audioTabs
-            sheet == LiveSheet.FORMAT -> VideoResolution.tabTitles
+            sheet == LiveSheet.FORMAT -> formatResolutions(status).map { it.tabTitle }
             else -> emptyList()
         }
+
+    fun formatResolutions(status: CameraStatus): List<VideoResolution> =
+        VideoFormat.resolutions(status.availableVideoFormats, VideoFormat.current(status).resolution)
+
+    fun formatRates(status: CameraStatus, resolution: VideoResolution): List<VideoFrameRate> =
+        VideoFormat.frameRates(
+            status.availableVideoFormats,
+            resolution,
+            VideoFormat.current(status).frameRate,
+        )
+
+    fun fpsDrumLabels(status: CameraStatus, tab: Int): List<String> {
+        val res = formatResolutions(status).getOrNull(tab) ?: VideoFormat.current(status).resolution
+        return formatRates(status, res).map { it.drumLabel }
+    }
+
+    fun nextVideoFormat(
+        status: CameraStatus,
+        tab: Int,
+        drum: String,
+        fromDrum: Boolean,
+    ): VideoFormat? {
+        val resolutions = formatResolutions(status)
+        val res = resolutions.getOrNull(tab) ?: return null
+        val rates = formatRates(status, res)
+        val parsed = VideoFrameRate.fromDrumLabel(drum)
+        val rate =
+            when {
+                fromDrum -> parsed?.takeIf { it in rates } ?: return null
+                parsed != null && parsed in rates -> parsed
+                else -> rates.firstOrNull() ?: return null
+            }
+        val next = VideoFormat(res, rate)
+        return next.takeIf { it != VideoFormat.current(status) }
+    }
 
     val audioTabs: List<String> = listOf("Channel", "Wind", "Dir", "Vocal")
     val audioChannelLabels: List<String> = listOf("Stereo", "Mono", "Spatial")
@@ -1568,12 +1612,22 @@ object CaptureLists {
 
     val resolutionTabTitles: List<String> get() = VideoResolution.tabTitles
 
+    /** Family fallback — D-Log2 is 4 Pro only (`colorWheelOrder`). */
     val colorWheelPocket: List<Pair<Int, String>> =
         listOf(
             CameraCommands.COLOR_NORMAL to "Normal",
             CameraCommands.COLOR_HDR to "HDR",
             CameraCommands.COLOR_DLOG to "D-Log",
-            CameraCommands.COLOR_DLOG2 to "D-Log2",
+        )
+
+    val colorWheelPocket4Pro: List<Pair<Int, String>> =
+        colorWheelPocket + listOf(CameraCommands.COLOR_DLOG2 to "D-Log2")
+
+    val colorWheelPocket3: List<Pair<Int, String>> =
+        listOf(
+            CameraCommands.COLOR_NORMAL to "Normal",
+            CameraCommands.COLOR_HDR to "HDR",
+            CameraCommands.COLOR_DLOG_M to "D-Log M",
         )
 
     val colorWheelNano: List<Pair<Int, String>> =
@@ -1864,6 +1918,9 @@ object CaptureLists {
     fun wbCustomFromTint(tint: Float, status: CameraStatus): Pair<Int, Int> =
         currentKelvin(status) to roundedTint(tint)
 
+    fun wbTintStaysAuto(status: CameraStatus): Boolean =
+        status.wbMode != CameraCommands.WB_CUSTOM
+
     fun fpsDrumLabel(status: CameraStatus): String = VideoFormat.current(status).frameRate.drumLabel
 
     fun fpsIndexFromDrum(label: String): Int? = VideoFrameRate.fromDrumLabel(label)?.rawValue
@@ -1890,34 +1947,41 @@ object CaptureLists {
         return denom.takeIf { it != currentDenom }
     }
 
-    fun colorWheel(family: String, available: List<Int> = emptyList()): List<Pair<Int, String>> {
-        val order = if (family == "nano") colorWheelNano else colorWheelPocket
+    fun colorWheelOrder(name: String, family: String): List<Pair<Int, String>> {
+        val codes = CameraModel.colorModesFor(name, family)
+        return codes.map { it to CameraCommands.colorLabel(it, family) }
+    }
+
+    fun colorWheel(
+        family: String,
+        available: List<Int> = emptyList(),
+        name: String = "",
+    ): List<Pair<Int, String>> {
+        val order = colorWheelOrder(name, family)
         if (available.isEmpty()) return order
         val have = available.toSet()
         val ranked = order.filter { it.first in have }
-        val extras =
-            available
-                .filter { code ->
-                    order.none { it.first == code } && CameraCommands.colorLabel(code, family) != "—"
-                }
-                .map { code -> code to CameraCommands.colorLabel(code, family) }
-        return ranked + extras
+        return ranked.ifEmpty { order }
     }
 
     fun colorWheelLabels(
         status: CameraStatus,
         family: String = "pocket",
-    ): List<String> = colorWheel(family, status.availableColorModes).map { it.second }
+        name: String = "",
+    ): List<String> = colorWheel(family, status.availableColorModes, name).map { it.second }
 
-    fun colorModeFromLabel(label: String, family: String = "pocket"): Int? {
+    fun colorModeFromLabel(label: String, family: String = "pocket", name: String = ""): Int? {
         if (label == "Normal 8-bit") return CameraCommands.COLOR_NORMAL
-        return colorWheel(family).firstOrNull { it.second == label }?.first
+        if (label == "D-Log M") return CameraCommands.COLOR_DLOG_M
+        return colorWheel(family, name = name).firstOrNull { it.second == label }?.first
             ?: colorWheelPocket.firstOrNull { it.second == label }?.first
+            ?: colorWheelPocket4Pro.firstOrNull { it.second == label }?.first
+            ?: colorWheelPocket3.firstOrNull { it.second == label }?.first
             ?: colorWheelNano.firstOrNull { it.second == label }?.first
     }
 
     /**
-     * COLOR drum: family wheel only, then hop ISO after the color SET — same
+     * COLOR drum: body wheel only, then hop ISO after the color SET — same
      * order as iOS `CameraSession.setColorMode` + `CamCapIso.nativeISOHop`.
      */
     fun applyColorDrum(
@@ -1925,9 +1989,10 @@ object CaptureLists {
         family: String,
         status: CameraStatus,
         hopEnabled: Boolean,
+        name: String = "",
     ): ColorDrumCommand? {
-        val mode = colorModeFromLabel(label, family) ?: return null
-        val allowed = colorWheel(family, status.availableColorModes).map { it.first }
+        val mode = colorModeFromLabel(label, family, name) ?: return null
+        val allowed = colorWheel(family, status.availableColorModes, name).map { it.first }
         if (mode !in allowed) return null
         val hop =
             nativeIsoHop(
