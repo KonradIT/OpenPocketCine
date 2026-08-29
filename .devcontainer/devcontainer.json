@@ -1,0 +1,28 @@
+{
+  "name": "OpenPocketCine Android",
+  "image": "swift:6.3.3-noble",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "installGradle": false
+    }
+  },
+  "hostRequirements": {
+    "cpus": 4,
+    "memory": "16gb",
+    "storage": "64gb"
+  },
+  "containerEnv": {
+    "ANDROID_HOME": "/opt/android-sdk",
+    "ANDROID_SDK_ROOT": "/opt/android-sdk",
+    "ANDROID_NDK_HOME": "/opt/android-sdk/ndk/27.2.12479018",
+    "ANDROID_NDK_ROOT": "",
+    "SWIFT_ANDROID_SDK_ID": "swift-6.3.3-RELEASE_android"
+  },
+  "onCreateCommand": "bash .devcontainer/setup-android.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["swiftlang.swift-vscode", "fwcd.kotlin"]
+    }
+  }
+}
