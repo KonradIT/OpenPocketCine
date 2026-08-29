@@ -154,12 +154,19 @@ class HevcDecoder {
         val idr = isIdrPicture(types, accessUnit)
         val csd = SwiftCore.hevcCsd(accessUnit)
         var sizeCallback: Pair<Int, Int>? = null
-        if (csd != null && detectCodec(csd, types) != null) {
+        // `hevcCsd` hands back a blob for every access unit, not only parameter-set-bearing ones:
+        // a 16 KB P-frame comes back carrying no VPS/SPS/PPS at all. Taking that as the new
+        // baseline made the comparison alternate 30 bytes <-> 0 bytes and report a change on
+        // every access unit, so a Nano rebuilt its decoder once a second, on every IDR, to the
+        // same 1280x720. An access unit with no parameter sets cannot signal a parameter-set
+        // change, and must not become the baseline the next keyframe is compared against.
+        val nextSets = csd?.let { parameterSetNals(it) } ?: ByteArray(0)
+        if (csd != null && nextSets.isNotEmpty() && detectCodec(csd, types) != null) {
             val changing =
                 EncoderPresentPath.parameterSetsChanged(
                     hadFormat = configured || builtCsd != null,
-                    previousCsd = builtCsd,
-                    nextCsd = csd,
+                    previousCsd = builtCsd?.let { parameterSetNals(it) },
+                    nextCsd = nextSets,
                 )
             pendingCsd = csd
             pendingTypes = types
@@ -557,6 +564,38 @@ class HevcDecoder {
             } else {
                 3
             }
+
+        /**
+         * The parameter-set NALs in [csd], start codes kept, in wire order.
+         *
+         * Only VPS/SPS/PPS decide whether MediaCodec has to be reconfigured, so only those may
+         * count as a parameter-set change. Comparing whole CSD blobs makes anything else riding
+         * along — an SEI whose payload varies per keyframe, a differing NAL order — look like a
+         * format change: a Nano rebuilt the decoder once a second, on every IDR, to the same
+         * 1280x720. This matches OpenPocketViewCore `EncoderPresentPath.parameterSetsChanged`,
+         * which already compares VPS/SPS/PPS separately.
+         *
+         * HEVC VPS/SPS/PPS lead with 0x40/0x42/0x44; AVC SPS/PPS with 0x67/0x68 — the same bytes
+         * [detectCodec] keys on.
+         */
+        internal fun parameterSetNals(csd: ByteArray): ByteArray {
+            val sets = ArrayList<ByteArray>()
+            for (nal in annexBNals(csd)) {
+                val skip = startCodeLength(nal)
+                if (nal.size <= skip) continue
+                when (nal[skip].toInt() and 0xFF) {
+                    0x40, 0x42, 0x44, 0x67, 0x68 -> sets.add(nal)
+                }
+            }
+            if (sets.isEmpty()) return ByteArray(0)
+            val merged = ByteArray(sets.sumOf { it.size })
+            var at = 0
+            for (nal in sets) {
+                nal.copyInto(merged, at)
+                at += nal.size
+            }
+            return merged
+        }
 
         private fun nalTypeAfterStartCode(nal: ByteArray): Int {
             val skip = startCodeLength(nal)
