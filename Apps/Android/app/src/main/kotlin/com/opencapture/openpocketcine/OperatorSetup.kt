@@ -68,6 +68,7 @@ import com.opencapture.openpocketcine.assists.LiveAssistTool
 import com.opencapture.openpocketcine.assists.LiveZebra
 import com.opencapture.openpocketcine.assists.ParadeMode
 import com.opencapture.openpocketcine.assists.PeakingColor
+import com.opencapture.openpocketcine.session.CameraCommands
 import com.opencapture.openpocketcine.assists.PeakingSense
 import com.opencapture.openpocketcine.assists.ScopeGuides
 import com.opencapture.openpocketcine.assists.VectorscopeZoom
@@ -116,6 +117,9 @@ object SettingsHelpCopy {
     const val FRAME_IO =
         "Sign in to upload clips from the share popup. Frame.io needs the internet, so the phone hops off the camera Wi‑Fi for the upload."
     const val RECORD_CONFIRMATION = "Ask before starting or stopping recording to prevent mistaps."
+    const val SHOOTING_MODE =
+        "Switch the camera between Video, Photo and the time-based modes. The camera reports " +
+            "the mode back, so this follows a change made on the body itself."
     const val HAPTICS = "Short confirmation pulses for critical switches and setting changes."
     const val JOYSTICK_SENSITIVITY =
         "How far a stick throw moves the gimbal. 4 is the current feel. 5 reaches full speed sooner; 1 is the slowest."
@@ -786,7 +790,7 @@ private fun SettingsContentPane(
                             LinkRows(model, isLive, phaseLabel, bars)
                         OperatorSettingsTab.SHARING -> SharingRows()
                         OperatorSettingsTab.ASSIST -> AssistRows(model, statusColorMode, onOpenLut)
-                        OperatorSettingsTab.CONTROLS -> ControlsRows(model)
+                        OperatorSettingsTab.CONTROLS -> ControlsRows(model, isLive)
                         OperatorSettingsTab.DISPLAY ->
                             DisplayRows(model, isLive, expandedDisp, onExpandDisp)
                         OperatorSettingsTab.STORAGE -> StorageRows(model, onClearCache)
@@ -1209,9 +1213,55 @@ private fun ScopeGuideRows(guides: ScopeGuides, onChange: (ScopeGuides) -> Unit)
     }
 }
 
+/**
+ * Shooting-mode picker, mirroring the iOS capture sheet.
+ *
+ * Laid out as two strips of three rather than one six-wide segment so "HyperLapse" and
+ * "SuperNight" stay readable, keeping the camera's own carousel order reading left to right,
+ * top to bottom. Selection comes from the camera's `0x02/0x80` status push, so it follows a
+ * mode changed on the body itself; [CameraCommands.shootingModeCarousel] is the only source of
+ * values written back.
+ */
 @Composable
-private fun ControlsRows(model: AppModel) {
+private fun ShootingModeRow(model: AppModel, view: View) {
+    val status by model.session.status.collectAsState()
+    val cameraName = model.session.connectedCamera?.model?.name
+    val carousel = remember(cameraName) { CameraCommands.shootingModeCarousel(cameraName) }
+    val selectedLabel = CameraCommands.shootingModeLabel(status.shootingMode)
+    SettingsInlineRow(
+        title = "Shooting Mode",
+        help = SettingsHelpCopy.SHOOTING_MODE,
+        showTopDivider = false,
+        stacked = true,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            carousel.chunked(3).forEach { row ->
+                val labels = row.mapNotNull { CameraCommands.shootingModeLabel(it) }
+                SettingsSegmented(
+                    options = labels,
+                    // Blank keeps the whole strip unselected when the mode lives in the other row.
+                    selected = if (selectedLabel in labels) selectedLabel.orEmpty() else "",
+                    compact = true,
+                ) { label ->
+                    val raw = row.firstOrNull { CameraCommands.shootingModeLabel(it) == label }
+                    if (raw != null && raw != status.shootingMode) {
+                        operatorHaptic(view, model.hapticsEnabled)
+                        model.setShootingMode(raw)
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ControlsRows(model: AppModel, isLive: Boolean) {
     val view = LocalView.current
+    if (isLive) {
+        SettingsRowCard(title = "Capture") {
+            ShootingModeRow(model, view)
+        }
+    }
     SettingsRowCard {
         SettingsSwitchInlineRow(
             title = "Record Confirmation",

@@ -529,10 +529,10 @@ public enum AndroidSessionWire {
         case .shootPhoto:
             return Commands.shootPhoto(seq: seq)
         case .setShootingMode:
-            guard let raw = parseUInt8(extra), let mode = ShootingMode(rawValue: raw) else {
-                return nil
-            }
-            return Commands.setShootingMode(mode, seq: seq)
+            // Not `ShootingMode(rawValue:)`: the Nano's Photo is 0x05 and has no case, so going
+            // through the enum returned nil and the mode never reached the wire.
+            guard let raw = parseUInt8(extra) else { return nil }
+            return Commands.setShootingMode(raw: raw, seq: seq)
         case .setEv:
             guard let raw = parseUInt8(extra), let ev = EvComp(rawValue: raw) else { return nil }
             return Commands.setEv(ev, seq: seq)

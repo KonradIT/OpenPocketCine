@@ -297,6 +297,55 @@ object CameraCommands {
             shootingMode == SHOOT_PHOTO_POCKET4 ||
             shootingMode == SHOOT_SUPER_NIGHT
 
+    /**
+     * Label for a tabled `0x02/0xE1` value, or null when the camera reports one we do not know.
+     * Both photo encodings read back as "Photo" — the body decides which it uses.
+     */
+    fun shootingModeLabel(raw: Int): String? =
+        when (raw) {
+            SHOOT_SLOWMO -> "SlowMo"
+            SHOOT_VIDEO -> "Video"
+            SHOOT_TIMELAPSE -> "TimeLapse"
+            SHOOT_PHOTO, SHOOT_PHOTO_POCKET4 -> "Photo"
+            SHOOT_HYPERLAPSE -> "HyperLapse"
+            SHOOT_SUPER_NIGHT -> "SuperNight"
+            else -> null
+        }
+
+    /**
+     * Photo is the one mode whose `0x02/0xE1` value is body-dependent: Pocket 4 / 4 Pro take
+     * `0x17`, and a Nano rejects that and takes `0x05`.
+     */
+    fun photoModeRaw(cameraName: String?): Int {
+        val n = cameraName.orEmpty().lowercase().replace(" ", "")
+        return if (n.contains("pocket4")) SHOOT_PHOTO_POCKET4 else SHOOT_PHOTO
+    }
+
+    /**
+     * The camera's own on-screen carousel order — Video, Photo, TimeLapse, HyperLapse,
+     * SuperNight, SlowMo — which is not the numeric order. The wire enum is sparse and
+     * unordered, so this is tabled and never computed.
+     *
+     * Only ever send a value from this table. Sweeping the `0x02/0xE1` value space froze a Nano
+     * solid and needed a power cycle, so an unlisted mode must be refused rather than passed
+     * through (Osmosis `MEDIA_PROTOCOL.md` §13a, DJI-Remote `engine_media.c`).
+     *
+     * Panorama (`0x0c`) is documented but left out: no hardware here has confirmed it.
+     *
+     * Note this is `0x02/0xE1`, never `0x02/0x02`. That opcode is nominally DJI's four-value
+     * *work* mode, but on a Nano it **is** record control — a "Video" entry mapped to `[01]`
+     * would start a recording behind the operator's back.
+     */
+    fun shootingModeCarousel(cameraName: String?): List<Int> =
+        listOf(
+            SHOOT_VIDEO,
+            photoModeRaw(cameraName),
+            SHOOT_TIMELAPSE,
+            SHOOT_HYPERLAPSE,
+            SHOOT_SUPER_NIGHT,
+            SHOOT_SLOWMO,
+        )
+
     fun shootPhoto(): ByteArray = byteArrayOf(0x01)
 
     /** `0x02/0x2E` 1-byte EV. `0x10` = 0.0; ⅓-stop steps, −9…+9 thirds. */

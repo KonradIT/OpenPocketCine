@@ -221,6 +221,18 @@ public enum Commands {
         camera(0xE1, [mode.rawValue], seq: seq)
     }
 
+    /// `0x02/0xE1` from a raw wire value, for callers that carry the byte rather than the case —
+    /// Photo is body-dependent (`0x17` on a Pocket 4, `0x05` on a Nano), and only one of those
+    /// can be `ShootingMode.photo`.
+    ///
+    /// Returns nil for anything outside `ShootingMode.tabledRawValues`. That refusal is the point:
+    /// sweeping this opcode's value space froze a Nano solid and needed a power cycle, so an
+    /// unrecognised mode must never reach the wire.
+    public static func setShootingMode(raw: UInt8, seq: UInt16 = 0) -> Duml.Frame? {
+        guard ShootingMode.tabledRawValues.contains(raw) else { return nil }
+        return camera(0xE1, [raw], seq: seq)
+    }
+
     /// `0x02/0x8E` GET = `00 01 <pid:u16-LE>`.
     public static func paramGet(_ param: CameraParam, seq: UInt16 = 0) -> Duml.Frame {
         let pid = param.rawValue
