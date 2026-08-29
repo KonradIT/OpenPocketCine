@@ -60,8 +60,13 @@ public enum AndroidSessionWire {
         return out
     }
 
-    public static func cameraModelJSON(modelId: Int?, name: String?) -> String {
-        let model = CameraModel.resolve(modelId: modelId, name: name)
+    /// `address` is the BLE MAC. Android is the only platform that can see one, and its OUI is
+    /// what separates an Xtra rebrand (10004 / no poke) from the DJI original it clones.
+    public static func cameraModelJSON(
+        modelId: Int?, name: String?, address: String? = nil, djiCid: Bool = false
+    ) -> String {
+        let brand = CameraBrand.of(address: address, name: name, djiCid: djiCid)
+        let model = CameraModel.resolve(modelId: modelId, name: name, brand: brand)
         func bool(_ v: Bool) -> String { v ? "true" : "false" }
         let escaped = (model.name)
             .replacingOccurrences(of: "\\", with: "\\\\")

@@ -14,9 +14,8 @@ public enum BleConstants {
 }
 
 /// Per-model camera capabilities keyed on the BLE model id. Only the datalink UDP port and WiFi
-/// security actually vary across the Osmo line. Ported from Osmosis `ble/CameraModel.kt` (trimmed:
-/// the Xtra-rebrand 10004/no-poke override is omitted — this prototype targets the Pocket line).
-/// ponytail: add Xtra brand handling if a rebadged unit ever needs it.
+/// security actually vary across the Osmo line. Ported from Osmosis `ble/CameraModel.kt`, including
+/// the Xtra-rebrand 10004/no-poke override — see `resolve(modelId:name:brand:)` and `CameraBrand`.
 public struct CameraModel: Equatable, Sendable {
     public let name: String
     public let datalinkPort: Int
@@ -135,9 +134,38 @@ public struct CameraModel: Equatable, Sendable {
         0x007E: CameraModel(name: "DJI Neo 2", datalinkPort: 9003, tcpPoke: false, isDrone: true),
     ]
 
+    /// Xtra's shell-company product names for the DJI models they rebadge, keyed by the shared
+    /// DJI BLE model id — an Xtra advertises the *same* id as the DJI original.
+    static let xtraNames: [Int: String] = [
+        0x0019: "Xtra Atto",  // rebadged Osmo Nano
+        0x0014: "Xtra Edge",  // rebadged Osmo Action 4
+        0x0015: "Xtra Edge Pro",  // rebadged Osmo Action 5 Pro — the only verified Xtra
+        0x0020: "Xtra Muse",  // rebadged Osmo Pocket 3
+    ]
+
     /// Resolve by BLE model id, then by local name (the Pocket 3 sends no manufacturer data, so it
     /// only resolves by name). Unknown ids at/above 0x40 are treated as drones.
-    public static func resolve(modelId: Int?, name: String?) -> CameraModel {
+    ///
+    /// `brand` matters because the whole Xtra line runs a **10004 / no-poke** datalink instead of
+    /// the DJI-standard 9004 + TCP-7001 poke — a rebrand firmware change, not a model difference.
+    /// The Edge Pro advertises the same model id `0x0015` as a genuine Action 5 Pro yet speaks
+    /// 10004, so the id alone cannot tell them apart; the hardware OUI can. Ported from Osmosis
+    /// `ble/CameraModel.kt`, where the Edge Pro is hardware-verified.
+    public static func resolve(
+        modelId: Int?, name: String?, brand: CameraBrand = .unknown
+    ) -> CameraModel {
+        let base = resolveIgnoringBrand(modelId: modelId, name: name)
+        guard brand == .xtra else { return base }
+        let isEdgePro = modelId == 0x0015 || base.name.contains("Action 5")
+        let xtraName =
+            modelId.flatMap { xtraNames[$0] }
+            ?? (isEdgePro ? "Xtra Edge Pro" : "Xtra \(base.name)")
+        return CameraModel(
+            name: xtraName, datalinkPort: 10004, tcpPoke: false,
+            wpa3: base.wpa3, verified: isEdgePro, isDrone: base.isDrone)
+    }
+
+    private static func resolveIgnoringBrand(modelId: Int?, name: String?) -> CameraModel {
         if let id = modelId, let m = byId[id] { return m }
         if let id = modelId, id >= 0x40 {
             return CameraModel(
@@ -206,4 +234,34 @@ public enum ModelNames {
         0x0020: "OsmoPocket3", 0x0021: "OsmoPocket4", 0x0022: "OsmoPocket4Pro",
         0x0070: "Mavic3", 0x007E: "Neo2",
     ]
+}
+
+/// Camera brand, distinguished primarily by BLE MAC OUI. "Xtra" is a DJI shell-company rebrand
+/// (the Xtra Edge Pro is an Osmo Action 5 Pro) that keeps DJI's firmware and model ids but ships
+/// its own OUI `EC:9E:EA` — and a 10004 / no-poke datalink. Ported from Osmosis `ble/Brand.kt`.
+///
+/// Only Android can apply the OUI test: CoreBluetooth never exposes a peripheral's MAC, so iOS
+/// falls back to the name tells, which is why an Xtra unit whose owner renamed it is still
+/// recoverable — `CameraModel.alternate()` retries the other datalink config either way.
+public enum CameraBrand: Equatable, Sendable {
+    case dji
+    case xtra
+    case unknown
+
+    public static let xtraOUI = "EC:9E:EA"
+
+    /// `djiCid` = the advert carried a DJI BLE company id. That is the definitive DJI tell, but it
+    /// is checked *after* the Xtra branches: an Xtra broadcasts DJI's company id too, and its own
+    /// OUI has to win or it would be handed the 9004 config it cannot answer.
+    public static func of(address: String?, name: String?, djiCid: Bool = false) -> CameraBrand {
+        let oui = (address ?? "").uppercased().prefix(8)
+        let n = (name ?? "").lowercased()
+        if oui == xtraOUI { return .xtra }
+        if n.contains("xtra") || n.contains("edge") { return .xtra }
+        if djiCid { return .dji }
+        for tell in ["osmo", "nano", "dji", "pocket", "action"] where n.contains(tell) {
+            return .dji
+        }
+        return .unknown
+    }
 }

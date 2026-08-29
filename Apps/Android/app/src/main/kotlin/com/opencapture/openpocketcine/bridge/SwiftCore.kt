@@ -141,7 +141,16 @@ object SwiftCore {
 
     external fun bleAdvertModelId(payload: ByteArray): Int
 
-    external fun resolveCameraModel(modelId: Int, name: String?): String?
+    /**
+     * [address] is the BLE MAC: its OUI is what tells an Xtra rebrand (10004 / no TCP-7001 poke)
+     * from the DJI model it clones, which advertises the same model id.
+     */
+    external fun resolveCameraModel(
+        modelId: Int,
+        name: String?,
+        address: String?,
+        djiCid: Boolean,
+    ): String?
 
     external fun transportHeader(pktType: Int, payloadLen: Int, sessionId: Int, seq: Int): ByteArray?
 

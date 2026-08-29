@@ -142,11 +142,14 @@
     @_cdecl("Java_com_opencapture_openpocketcine_bridge_SwiftCore_resolveCameraModel")
     public func swiftCoreResolveCameraModel(
         env: UnsafeMutablePointer<JNIEnv?>, this _: jobject?,
-        modelId: jint, name: jstring?
+        modelId: jint, name: jstring?, address: jstring?, djiCid: jboolean
     ) -> jstring? {
         let id: Int? = modelId < 0 ? nil : Int(modelId)
         return javaString(
-            env, AndroidSessionWire.cameraModelJSON(modelId: id, name: swiftString(env, name)))
+            env,
+            AndroidSessionWire.cameraModelJSON(
+                modelId: id, name: swiftString(env, name),
+                address: swiftString(env, address), djiCid: djiCid != 0))
     }
 
     @_cdecl("Java_com_opencapture_openpocketcine_bridge_SwiftCore_transportHeader")
