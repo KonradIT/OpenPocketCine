@@ -1,1 +1,1 @@
-Cold start on Android 10 should reach the OpenPocketCine wordmark instead of closing before the first screen. Still no square logo flash. Pair, live view, record, and library share are unchanged.
+Pairing and Operator Setup no longer sit under the clock. Opening Settings or the library from live view brings the status bar back so headers stay readable. Live view still hides the bars until you swipe in from the edge.

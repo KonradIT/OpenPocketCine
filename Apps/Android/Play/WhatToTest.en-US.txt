@@ -6,11 +6,11 @@ New and changed
 
 Fixes
 
-- On some Android 10 phones and tablets the app closed before the OpenPocketCine wordmark. Cold start should now reach the wordmark on a dark screen, still with no square logo flash.
-- Live view should come up in a couple of seconds after Wi-Fi joins, not sit on Waiting for live view. White balance Auto keeps tint. Zoom chips match the body (4 Pro 1×/3×/6×/12×, Pocket 4 1×/2×/4×). Zoom must keep the live picture, not just HUD and stick.
+- Pairing and Operator Setup no longer sit under the clock. Opening Settings or the library from live view brings the status bar back so the header is readable. Live view still hides the bars until you swipe in from the edge.
+- Live view should come up in a couple of seconds after Wi-Fi joins, not sit on Waiting for live view. White balance Auto keeps tint. Zoom chips match the body.
 
 What to test
 
-- Cold-start on an Android 10 device, or any 64-bit phone on Android 10 or newer. Confirm it opens to the wordmark, not a crash, and that the first screen is the dark hold with no square icon in the middle.
-- Pair an Osmo Pocket 4 Pro, join its Wi-Fi, and confirm live view fills the monitor in a couple of seconds.
+- Cold start: the pairing title should sit below the time.
+- Connect, then open Settings and the library from the live monitor. Headers should clear the status bar. Back on live view the bars should hide again; a swipe from the edge should show them briefly.
 - Record a short take, then open it in the library with LUT on. Share should send the original file, not a small preview.
