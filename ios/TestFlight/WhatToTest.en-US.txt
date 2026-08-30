@@ -1,16 +1,16 @@
 New and changed
 
-- Xtra bodies should join instead of sitting on Open datalink. The phone tells them apart from a DJI original by the advertised Bluetooth name.
+- No new iPhone chrome in this build. Pairing, live view, and capture stay as they were.
 - Pair over Bluetooth, join the camera's Wi-Fi, and watch a live view. Record, ISO, white balance, and zoom from the phone.
 - Open clips from the camera. LUT, false colour, peaking, and zebra grade the picture. Share and Save still use the original camera file.
 
 Fixes
 
-- An Xtra that used to stall after Wi-Fi joined should now handshake and show live view. A Pocket or Nano beside it must still join as before.
-- Live view should come up in a couple of seconds after Wi-Fi joins, not sit on Waiting for live view. Zoom must keep the live picture, not just HUD and stick.
+- No tester-facing iPhone fixes in this build. Live view should still come up in a couple of seconds after Wi-Fi joins, not sit on Waiting for live view.
+- Zoom must keep the live picture, not just HUD and stick. COLOR still lists what this camera has: D-Log2 only on Pocket 4 Pro.
 
 What to test
 
-- If you have an Xtra, pair it. Confirm live view fills and you can open a clip from the camera.
-- Pair a Pocket or Nano and confirm it still joins, with live view in a couple of seconds. Cycle zoom; the picture must stay.
+- Pair a Pocket, join Wi-Fi, and confirm live view fills in a couple of seconds. Cycle zoom; the picture must stay.
 - Record a short take, then open it in the library with LUT on. Share should send the original file, not a small preview.
+- On a 4 Pro, COLOR should include D-Log2. On Pocket 3, COLOR is Normal / HDR / D-Log M.
