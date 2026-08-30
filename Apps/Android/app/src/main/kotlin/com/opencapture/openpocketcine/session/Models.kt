@@ -260,16 +260,11 @@ data class CameraStatus(
 ) {
     val shootingModeLabel: String
         get() =
-            when (shootingMode) {
-                0x00 -> "SlowMo"
-                0x01 -> "Video"
-                0x02 -> "TimeLapse"
-                0x05, 0x17 -> "Photo"
-                0x0A -> "HyperLapse"
-                0x28 -> "SuperNight"
-                -1 -> if (inPlayback) "Playback" else "Capture"
-                else -> "0x%02X".format(shootingMode)
-            }
+            CameraCommands.shootingModeLabel(shootingMode)
+                ?: when (shootingMode) {
+                    -1 -> if (inPlayback) "Playback" else "Capture"
+                    else -> "0x%02X".format(shootingMode)
+                }
 
     val expoLabel: String
         get() =

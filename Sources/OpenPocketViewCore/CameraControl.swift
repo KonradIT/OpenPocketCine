@@ -45,6 +45,22 @@ public enum ShootingMode: UInt8, CaseIterable, Sendable {
     }
 
     public var isPhoto: Bool { self == .photo || self == .superNight }
+
+    /// Every `0x02/0xE1` value a supported body accepts, including the Nano's Photo `0x05`, which
+    /// has no case of its own because `photo` carries the Pocket 4 encoding `0x17`.
+    ///
+    /// The wire enum is sparse and unordered, so it is tabled and never computed, and nothing
+    /// outside this set may be sent: sweeping the opcode's value space froze a Nano solid and
+    /// needed a power cycle. Panorama `0x0c` is documented but omitted — unconfirmed on hardware.
+    public static let tabledRawValues: Set<UInt8> = [
+        0x00,  // SlowMo
+        0x01,  // Video
+        0x02,  // TimeLapse
+        0x05,  // Photo (Nano)
+        0x0A,  // HyperLapse
+        0x17,  // Photo (Pocket 4 / 4 Pro)
+        0x28,  // SuperNight
+    ]
 }
 
 /// Osmosis §14 / Mimo 2026-08-14 `0x02/0x8E` pids.
