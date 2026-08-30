@@ -18,6 +18,17 @@ import Testing
                 == .xtra)
     }
 
+    @Test func nameTellWithoutAMacIsXtra() {
+        // iOS has no MAC; the advertised name is the brand tell.
+        #expect(CameraBrand.of(address: nil, name: "XtraEdgePro-2DCA16") == .xtra)
+        let xtra = CameraModel.resolve(
+            modelId: 0x0015,
+            name: "XtraEdgePro-2DCA16",
+            brand: CameraBrand.of(address: nil, name: "XtraEdgePro-2DCA16"))
+        #expect(xtra.datalinkPort == 10004)
+        #expect(xtra.tcpPoke == false)
+    }
+
     @Test func djiHardwareStaysDji() {
         #expect(CameraBrand.of(address: "58:B8:58:CC:F8:23", name: "OsmoPocket4P-AAAA") == .dji)
         #expect(CameraBrand.of(address: nil, name: "OsmoNano-5A31") == .dji)

@@ -9,6 +9,8 @@ BLE is control only. After pairing, Wi-Fi credentials are read over GATT and bul
 
 No scan filter (the Pocket 3 omits manufacturer data). Identify a camera by DJI company ID in the manufacturer data — `0x08AA`, or `0xF7AA` (Xtra rebrand) — or by name.
 
+Xtra rebrands keep DJI's model ids but speak UDP **10004** with no TCP `:7001` poke. Android tells them apart by BLE MAC OUI `EC:9E:EA`. iOS has no MAC, so it keys off the advertised name (`xtra` / `edge`).
+
 Model id is decoded from the advert:
 
 | Model | Advert model id |

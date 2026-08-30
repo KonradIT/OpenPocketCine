@@ -240,9 +240,9 @@ public enum ModelNames {
 /// (the Xtra Edge Pro is an Osmo Action 5 Pro) that keeps DJI's firmware and model ids but ships
 /// its own OUI `EC:9E:EA` — and a 10004 / no-poke datalink. Ported from Osmosis `ble/Brand.kt`.
 ///
-/// Only Android can apply the OUI test: CoreBluetooth never exposes a peripheral's MAC, so iOS
-/// falls back to the name tells, which is why an Xtra unit whose owner renamed it is still
-/// recoverable — `CameraModel.alternate()` retries the other datalink config either way.
+/// Android applies the OUI test. CoreBluetooth never exposes a peripheral's MAC, so iOS
+/// keys off the advertised name (`xtra` / `edge`). A renamed Xtra with no name tell still
+/// needs the Android OUI path.
 public enum CameraBrand: Equatable, Sendable {
     case dji
     case xtra
