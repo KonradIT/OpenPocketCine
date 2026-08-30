@@ -6,11 +6,11 @@ New and changed
 
 Fixes
 
-- Pairing and Operator Setup no longer sit under the clock. Opening Settings or the library from live view brings the status bar back so the header is readable. Live view still hides the bars until you swipe in from the edge.
-- Live view should come up in a couple of seconds after Wi-Fi joins, not sit on Waiting for live view. White balance Auto keeps tint. Zoom chips match the body.
+- On a Nano, live view no longer rebuilds once a second. The picture should stay up, not hitch or go black while the camera is still talking.
+- Live view should come up in a couple of seconds after Wi-Fi joins, not sit on Waiting for live view. Zoom must keep the live picture, not just HUD and stick.
 
 What to test
 
-- Cold start: the pairing title should sit below the time.
-- Connect, then open Settings and the library from the live monitor. Headers should clear the status bar. Back on live view the bars should hide again; a swipe from the edge should show them briefly.
+- Pair an Osmo Nano, join its Wi-Fi, and leave live view running for about a minute. The picture must stay; it should not blink or rebuild every second.
+- Pair a Pocket 4 / 4 Pro and confirm live view still fills. Cycle zoom; the picture must stay.
 - Record a short take, then open it in the library with LUT on. Share should send the original file, not a small preview.
