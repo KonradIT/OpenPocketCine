@@ -19,7 +19,11 @@ struct FoundCamera: Identifiable, Sendable {
         return FoundCamera(
             id: id,
             name: next.name,
-            model: CameraModel.resolve(modelId: next.modelId, name: next.name),
+            model: CameraModel.resolve(
+                modelId: next.modelId,
+                name: next.name,
+                brand: CameraBrand.of(address: nil, name: next.name)
+            ),
             modelId: next.modelId
         )
     }
@@ -390,7 +394,11 @@ extension BleLink: CBCentralManagerDelegate {
         return FoundCamera(
             id: peripheral.identifier,
             name: advName ?? "DJI camera",
-            model: CameraModel.resolve(modelId: modelId, name: advName),
+            model: CameraModel.resolve(
+                modelId: modelId,
+                name: advName,
+                brand: CameraBrand.of(address: nil, name: advName, djiCid: isDji)
+            ),
             modelId: modelId)
     }
 }
