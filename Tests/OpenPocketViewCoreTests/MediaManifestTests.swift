@@ -154,9 +154,9 @@ import Testing
 
     @Test func chunkAssemblerStripsSubheader() {
         var assembler = MediaChunkAssembler()
-        #expect(
-            assembler.ingestPayload(
-                [0x4A, 0x04, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00]))
+        let acceptedStart = assembler.ingestPayload(
+            [0x4A, 0x04, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00])
+        #expect(acceptedStart)
         var payload: [UInt8] = [0x4A, 0x01, 0x00, 0x00, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00]
         payload += [0xDE, 0xAD]
         let frame = Duml.Frame(
@@ -184,21 +184,31 @@ import Testing
         func data(_ counter: UInt8) -> [UInt8] { control(0x01, counter) + [counter] }
 
         var assembler = MediaChunkAssembler()
-        #expect(assembler.ingestPayload(control(0x04, 1)))
-        #expect(assembler.ingestPayload(data(1)))
-        #expect(assembler.ingestPayload(control(0x03, 1)))
+        let acceptedSDStart = assembler.ingestPayload(control(0x04, 1))
+        #expect(acceptedSDStart)
+        let acceptedSDData = assembler.ingestPayload(data(1))
+        #expect(acceptedSDData)
+        let acceptedSDEnd = assembler.ingestPayload(control(0x03, 1))
+        #expect(acceptedSDEnd)
         #expect(!assembler.streamsEnded(requiredCounters: [1, 2]))
-        #expect(assembler.ingestPayload(control(0x04, 2)))
-        #expect(assembler.ingestPayload(data(2)))
+        let acceptedInternalStart = assembler.ingestPayload(control(0x04, 2))
+        #expect(acceptedInternalStart)
+        let acceptedInternalData = assembler.ingestPayload(data(2))
+        #expect(acceptedInternalData)
         #expect(!assembler.streamsEnded(requiredCounters: [1, 2]))
-        #expect(assembler.ingestPayload(control(0x03, 2)))
+        let acceptedInternalEnd = assembler.ingestPayload(control(0x03, 2))
+        #expect(acceptedInternalEnd)
         #expect(assembler.streamsEnded(requiredCounters: [1, 2]))
 
         assembler.reset()
-        #expect(assembler.ingestPayload(control(0x04, 1)))  // empty SD: start only
-        #expect(assembler.ingestPayload(control(0x04, 2)))
-        #expect(assembler.ingestPayload(data(2)))
-        #expect(assembler.ingestPayload(control(0x03, 2)))
+        let acceptedEmptySDStart = assembler.ingestPayload(control(0x04, 1))
+        #expect(acceptedEmptySDStart)
+        let acceptedSecondInternalStart = assembler.ingestPayload(control(0x04, 2))
+        #expect(acceptedSecondInternalStart)
+        let acceptedSecondInternalData = assembler.ingestPayload(data(2))
+        #expect(acceptedSecondInternalData)
+        let acceptedSecondInternalEnd = assembler.ingestPayload(control(0x03, 2))
+        #expect(acceptedSecondInternalEnd)
         #expect(assembler.streamsEnded(requiredCounters: [1, 2]))
         #expect(!assembler.streamsEnded(requiredCounters: [1, 2, 3]))
     }
